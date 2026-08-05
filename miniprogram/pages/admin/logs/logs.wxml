@@ -1,0 +1,24 @@
+<view class="logs-page">
+  <view class="page-head">
+    <view class="page-title">操作日志</view>
+    <view class="page-copy">追踪管理端关键操作、状态变化与账号来源</view>
+  </view>
+
+  <view class="log-list">
+    <view wx:for="{{logs}}" wx:key="id" class="log-card card">
+      <view class="log-top">
+        <text class="log-action">{{item.action}}</text>
+        <text class="log-time">{{item.time}}</text>
+      </view>
+      <view class="log-operator">{{item.operator}} · 对象 {{item.target}}</view>
+      <view wx:if="{{item.before || item.after}}" class="log-change">
+        <text class="log-before">{{item.before || '—'}}</text><text class="log-arrow">→</text><text class="log-after">{{item.after || '—'}}</text>
+      </view>
+      <view class="log-detail">{{item.detail}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{logs.length === 0}}" class="empty-state">
+    <view class="empty-title">暂无操作日志</view>
+  </view>
+</view>

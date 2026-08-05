@@ -1,16 +1,14 @@
-import { Issue } from '../../types/issue'
-import { formatDateTime, generateIssueId, saveIssue } from '../../utils/issues'
+import { post, uploadImages } from '../../utils/api'
+import { ApiIssueDetail } from '../../types/api'
 
 Component({
   data: {
     types: ['意见建议', '问题咨询', '投诉反馈', '设施报修建议', '其他'],
     categories: ['宿舍', '食堂', '教学', '交通', '校园环境', '网络', '医疗健康', '学生服务', '其他'],
     campuses: ['松江校区', '长宁校区', '虹口校区'],
-    departments: ['不确定，由权益工作小组判断', '后勤部门（生活园区问题）', '教务处', '财务处', '保卫处', '其他'],
     typeIndex: -1,
     categoryIndex: -1,
     campusIndex: -1,
-    departmentIndex: 0,
     location: '',
     title: '',
     description: '',
@@ -24,7 +22,6 @@ Component({
     onTypeChange(event: any) { this.setData({ typeIndex: Number(event.detail.value) }) },
     onCategoryChange(event: any) { this.setData({ categoryIndex: Number(event.detail.value) }) },
     onCampusChange(event: any) { this.setData({ campusIndex: Number(event.detail.value) }) },
-    onDepartmentChange(event: any) { this.setData({ departmentIndex: Number(event.detail.value) }) },
     onLocationInput(event: any) { this.setData({ location: event.detail.value }) },
     onTitleInput(event: any) { this.setData({ title: event.detail.value }) },
     onDescriptionInput(event: any) { this.setData({ description: event.detail.value }) },
@@ -72,32 +69,28 @@ Component({
       if (this.data.isSubmitting) return
 
       this.setData({ isSubmitting: true })
-      const now = new Date()
-      const id = generateIssueId()
-      const issue: Issue = {
-        id,
-        type: this.data.types[this.data.typeIndex],
+      post<ApiIssueDetail>('/issues', {
+        kind: this.data.types[this.data.typeIndex],
         category: this.data.categories[this.data.categoryIndex],
         campus: this.data.campuses[this.data.campusIndex],
         location: this.data.location.trim(),
         title: this.data.title.trim(),
         description: this.data.description.trim(),
-        images: this.data.images,
-        status: '待受理',
-        statusKey: 'pending',
-        createdAt: formatDateTime(now),
-        updatedAt: formatDateTime(now),
-        isPublic: this.data.isPublic,
-        contact: this.data.contact.trim() || '微信联系',
-        department: '权益工作小组',
-        requestedDepartment: this.data.departments[this.data.departmentIndex],
-        latestProgress: '诉求已提交，等待权益工作小组查看。',
-        progress: [
-          { status: '学生提交', time: formatDateTime(now).slice(5), operator: '学生', description: '诉求已提交并生成编号。', current: true }
-        ]
-      }
-      saveIssue(issue)
-      wx.redirectTo({ url: `/pages/success/success?id=${id}` })
+        public_will: this.data.isPublic,
+        contact: this.data.contact.trim()
+      })
+        .then(async (issue) => {
+          if (this.data.images.length) {
+            await uploadImages(issue.id, this.data.images).catch(() => {
+              wx.showToast({ title: '诉求已提交，但图片上传失败', icon: 'none' })
+            })
+          }
+          wx.redirectTo({ url: `/pages/success/success?id=${issue.id}&no=${issue.issue_no}` })
+        })
+        .catch((err) => {
+          this.showError((err as Error).message || '提交失败')
+          this.setData({ isSubmitting: false })
+        })
     },
     showError(message: string) {
       wx.showToast({ title: message, icon: 'none', duration: 2200 })

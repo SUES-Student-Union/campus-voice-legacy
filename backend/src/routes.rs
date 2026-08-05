@@ -10,6 +10,7 @@ use tower_http::trace::TraceLayer;
 pub fn build_router(state: AppState) -> Router {
     let api = Router::new()
         .route("/auth/wechat", post(auth::wechat_login))
+        .route("/auth/sso", post(auth::sso_login))
         .route("/auth/login", post(auth::login))
         .route("/auth/me", get(auth::me))
         .route("/issues", post(issues::create_issue))
@@ -39,6 +40,10 @@ pub fn build_router(state: AppState) -> Router {
         .route("/departments", get(departments::list_departments))
         .route("/categories", get(departments::list_categories))
         .route("/department/issues", get(department::dept_issues))
+        .route(
+            "/department/issues/{id}",
+            get(department::dept_issue_detail),
+        )
         .route(
             "/department/issues/{id}/progress",
             post(department::update_progress),

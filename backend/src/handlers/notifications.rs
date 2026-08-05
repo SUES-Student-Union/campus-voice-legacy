@@ -10,6 +10,10 @@ pub async fn list_notifications(
     State(state): State<AppState>,
     user: AuthUser,
 ) -> AppResult<Json<Vec<NotificationOut>>> {
+    user.check(
+        crate::permissions::NOTIFICATION_VIEW,
+        &crate::permissions::Ctx::none(),
+    )?;
     let rows = sqlx::query_as::<_, Notification>(
         "SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50",
     )

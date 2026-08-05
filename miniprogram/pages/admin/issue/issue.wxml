@@ -1,0 +1,81 @@
+<view wx:if="{{issue}}" class="admin-issue">
+  <view class="head-card card">
+    <view class="head-top">
+      <text class="status-tag status-{{issue.statusKey}}">{{issue.status}}</text>
+      <text class="issue-no">{{issue.no}}</text>
+    </view>
+    <view class="detail-title">{{issue.title}}</view>
+    <view class="meta-grid">
+      <view class="meta"><text>学生</text><text>{{issue.studentName}}</text></view>
+      <view class="meta"><text>联系方式</text><text>{{issue.contact}}</text></view>
+      <view class="meta"><text>校区地点</text><text>{{issue.campus}} · {{issue.location}}</text></view>
+      <view class="meta"><text>负责部门</text><text>{{issue.department}}</text></view>
+      <view class="meta"><text>负责人</text><text>{{issue.assigneeName || '待分配'}}</text></view>
+      <view class="meta"><text>优先级</text><text>{{issue.priority}}</text></view>
+      <view class="meta"><text>公开意愿</text><text>{{issue.isPublic ? '同意公开' : '不公开'}}</text></view>
+      <view class="meta"><text>提交时间</text><text>{{issue.createdAt}}</text></view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">诉求描述</view>
+    <view class="card content-card">{{issue.description}}</view>
+  </view>
+
+  <view wx:if="{{issue.reply}}" class="section">
+    <view class="section-title">部门正式回复</view>
+    <view class="card content-card">{{issue.reply}}</view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">办理时间线</view>
+    <view class="card timeline-card">
+      <view wx:for="{{issue.progress}}" wx:key="time" class="timeline-item">
+        <view class="timeline-dot {{item.current ? 'current' : ''}}"></view>
+        <view class="timeline-body">
+          <view class="timeline-head"><text>{{item.status}}</text><text class="timeline-time">{{item.time}}</text></view>
+          <view class="timeline-operator">{{item.operator}}</view>
+          <view class="timeline-desc">{{item.description}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="action-bar">
+    <button wx:if="{{canAccept}}" class="action-btn primary" data-action="accept" bindtap="openAction">受理</button>
+    <button wx:if="{{canAssign}}" class="action-btn" data-action="assign" bindtap="openAction">指派</button>
+    <button wx:if="{{canSupplement}}" class="action-btn" data-action="supplement" bindtap="openAction">请求补充</button>
+    <button wx:if="{{canReview}}" class="action-btn primary" data-action="review" bindtap="openAction">公开审核</button>
+    <button wx:if="{{canClose}}" class="action-btn danger" data-action="close" bindtap="openAction">关闭</button>
+    <button wx:if="{{canDeptProgress}}" class="action-btn" data-action="progress" bindtap="openAction">更新进展</button>
+    <button wx:if="{{canReply}}" class="action-btn primary" data-action="reply" bindtap="openAction">提交回复</button>
+  </view>
+
+  <view wx:if="{{action}}" class="sheet-mask" bindtap="closeAction">
+    <view class="sheet" catchtap="noop">
+      <view class="sheet-title">{{actionTitle}}</view>
+
+      <block wx:if="{{action === 'accept'}}">
+        <picker range="{{categories}}" value="{{formCategoryIndex}}" bindchange="onCat">
+          <view class="sheet-field"><text>分类</text><text>{{categories[formCategoryIndex]}} ›</text></view>
+        </picker>
+        <picker range="{{priorities}}" value="{{formPriorityIndex}}" bindchange="onPriority">
+          <view class="sheet-field"><text>优先级</text><text>{{priorities[formPriorityIndex]}} ›</text></view>
+        </picker>
+        <view class="sheet-field"><text>公开属性</text><switch checked="{{formPublic}}" bindchange="onPublic" /></view>
+      </block>
+
+      <block wx:if="{{action === 'assign'}}">
+        <picker range="{{departments}}" range-key="name" value="{{formDeptIndex}}" bindchange="onDept">
+          <view class="sheet-field"><text>负责部门</text><text>{{formDeptIndex >= 0 ? departments[formDeptIndex].name : '请选择 ›'}}</text></view>
+        </picker>
+      </block>
+
+      <block wx:if="{{action === 'supplement' || action === 'close' || action === 'progress' || action === 'reply'}}">
+        <textarea class="sheet-textarea" maxlength="300" placeholder="{{action === 'reply' ? '请输入正式回复内容' : '请填写说明'}}" value="{{formNote}}" bindinput="onNote"></textarea>
+      </block>
+
+      <button class="action-btn primary sheet-submit" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitAction">确认</button>
+    </view>
+  </view>
+</view>

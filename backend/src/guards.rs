@@ -1,5 +1,6 @@
-use crate::auth::{decode_token, Claims, ROLE_ADMIN, ROLE_WORKER};
+use crate::auth::{decode_token, Claims};
 use crate::error::{AppError, AppResult};
+use crate::permissions::{self, Ctx};
 use crate::state::AppState;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
@@ -17,16 +18,9 @@ impl AuthUser {
         &self.0.role
     }
 
-    pub fn is_worker_or_admin(&self) -> bool {
-        matches!(self.role(), ROLE_WORKER | ROLE_ADMIN)
-    }
-
-    pub fn require_role(&self, roles: &[&str]) -> AppResult<()> {
-        if roles.iter().any(|r| *r == self.role()) {
-            Ok(())
-        } else {
-            Err(AppError::Forbidden("当前角色无权执行该操作".into()))
-        }
+    /// 权限节点校验（继承 + 上下文），失败返回 403。
+    pub fn check(&self, node: &str, ctx: &Ctx) -> AppResult<()> {
+        permissions::check(self.role(), self.id(), self.0.dept, node, ctx)
     }
 }
 

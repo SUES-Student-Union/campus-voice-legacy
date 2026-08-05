@@ -11,12 +11,12 @@ use uuid::Uuid;
 #[derive(Clone, Debug, FromRow)]
 pub struct User {
     pub id: Uuid,
+    pub campus_id: Option<String>,
     pub openid: Option<String>,
     pub username: Option<String>,
     pub password_hash: Option<String>,
     pub role: String,
     pub name: String,
-    pub student_no: Option<String>,
     pub department_id: Option<Uuid>,
     pub phone_masked: Option<String>,
     pub created_at: DateTime<Utc>,
@@ -45,7 +45,7 @@ pub struct Category {
 pub struct Issue {
     pub id: Uuid,
     pub issue_no: String,
-    pub student_id: Uuid,
+    pub submitter_id: Uuid,
     pub kind: String,
     pub category: String,
     pub campus: String,
@@ -156,7 +156,7 @@ pub struct UserOut {
     pub id: Uuid,
     pub role: String,
     pub name: String,
-    pub student_no: Option<String>,
+    pub campus_id: Option<String>,
     pub department_id: Option<Uuid>,
     pub phone_masked: Option<String>,
 }
@@ -167,7 +167,7 @@ impl From<&User> for UserOut {
             id: u.id,
             role: u.role.clone(),
             name: u.name.clone(),
-            student_no: u.student_no.clone(),
+            campus_id: u.campus_id.clone(),
             department_id: u.department_id,
             phone_masked: u.phone_masked.clone(),
         }
@@ -180,9 +180,39 @@ pub struct IssueListItem {
     pub issue_no: String,
     pub title: String,
     pub category: String,
+    pub campus: String,
+    pub department_name: Option<String>,
     pub status: String,
+    pub priority: String,
     pub latest_progress: String,
+    pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+}
+
+/// 诉求列表行：Issue + 部门名（联表查询用）。
+#[derive(Clone, Debug, FromRow)]
+pub struct IssueListRow {
+    #[sqlx(flatten)]
+    pub issue: Issue,
+    pub department_name: Option<String>,
+}
+
+impl From<IssueListRow> for IssueListItem {
+    fn from(row: IssueListRow) -> Self {
+        Self {
+            id: row.issue.id,
+            issue_no: row.issue.issue_no,
+            title: row.issue.title,
+            category: row.issue.category,
+            campus: row.issue.campus,
+            department_name: row.department_name,
+            status: row.issue.status,
+            priority: row.issue.priority,
+            latest_progress: row.issue.latest_progress,
+            created_at: row.issue.created_at,
+            updated_at: row.issue.updated_at,
+        }
+    }
 }
 
 #[derive(Serialize)]
@@ -245,6 +275,7 @@ pub struct PublicCaseOut {
     pub summary: String,
     pub reply: String,
     pub status: String,
+    pub department_name: Option<String>,
     pub submitted_at: DateTime<Utc>,
     pub completed_at: Option<DateTime<Utc>>,
     pub progress: Vec<ProgressOut>,
@@ -254,6 +285,26 @@ pub struct PublicCaseOut {
 pub struct AuthResponse {
     pub token: String,
     pub user: UserOut,
+}
+
+#[derive(Serialize)]
+pub struct ReviewDraftOut {
+    pub title: String,
+    pub location: String,
+    pub summary: String,
+    pub reply: String,
+}
+
+/// 管理端/部门端诉求详情：在 IssueDetail 基础上补充学生、负责人、时限与审核草稿信息。
+#[derive(Serialize)]
+pub struct AdminIssueDetail {
+    #[serde(flatten)]
+    pub base: IssueDetail,
+    pub student_name: Option<String>,
+    pub deadline: Option<DateTime<Utc>>,
+    pub assignee_name: Option<String>,
+    pub review_draft: Option<ReviewDraftOut>,
+    pub review_published: bool,
 }
 
 #[derive(Serialize)]
@@ -292,6 +343,14 @@ pub struct WechatLoginReq {
 pub struct LoginReq {
     pub username: String,
     pub password: String,
+}
+
+#[derive(Deserialize)]
+pub struct SsoLoginReq {
+    pub campus_id: String,
+    pub password: String,
+    /// 微信 code，用于把 openid 绑定到校园账号。
+    pub code: String,
 }
 
 #[derive(Deserialize)]

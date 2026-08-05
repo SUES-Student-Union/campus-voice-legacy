@@ -1,10 +1,11 @@
-use crate::auth::ROLE_STUDENT;
 use crate::domain::status::*;
 use crate::domain::{issue_no, notify};
 use crate::error::{AppError, AppResult};
 use crate::guards::AuthUser;
 use crate::handlers::{build_issue_detail, get_issue};
-use crate::models::{CreateIssueReq, Issue, IssueDetail, IssueListItem, RatingReq, SupplementReq};
+use crate::models::{
+    CreateIssueReq, Issue, IssueDetail, IssueListItem, IssueListRow, RatingReq, SupplementReq,
+};
 use crate::state::AppState;
 use axum::extract::{Path, State};
 use axum::Json;
@@ -18,7 +19,10 @@ pub async fn create_issue(
     user: AuthUser,
     Json(req): Json<CreateIssueReq>,
 ) -> AppResult<Json<IssueDetail>> {
-    user.require_role(&[ROLE_STUDENT])?;
+    user.check(
+        crate::permissions::ISSUE_SUBMIT,
+        &crate::permissions::Ctx::none(),
+    )?;
     validate_create(&req)?;
 
     let category_enabled =
@@ -42,7 +46,7 @@ pub async fn create_issue(
 
     let issue = sqlx::query_as::<_, Issue>(
         "INSERT INTO issues
-           (issue_no, student_id, kind, category, campus, location, title, description,
+           (issue_no, submitter_id, kind, category, campus, location, title, description,
             public_will, contact, latest_progress, status)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, '待受理')
          RETURNING *",
@@ -80,14 +84,19 @@ pub async fn my_issues(
     State(state): State<AppState>,
     user: AuthUser,
 ) -> AppResult<Json<Vec<IssueListItem>>> {
-    user.require_role(&[ROLE_STUDENT])?;
-    let rows = sqlx::query_as::<_, Issue>(
-        "SELECT * FROM issues WHERE student_id = $1 ORDER BY created_at DESC",
+    user.check(
+        crate::permissions::ISSUE_VIEW_OWN,
+        &crate::permissions::Ctx::owner(user.id()),
+    )?;
+    let rows = sqlx::query_as::<_, IssueListRow>(
+        "SELECT i.*, d.name AS department_name
+         FROM issues i LEFT JOIN departments d ON d.id = i.department_id
+         WHERE i.submitter_id = $1 ORDER BY i.created_at DESC",
     )
     .bind(user.id())
     .fetch_all(&state.db)
     .await?;
-    Ok(Json(rows.iter().map(to_list_item).collect()))
+    Ok(Json(rows.into_iter().map(IssueListItem::from).collect()))
 }
 
 pub async fn my_issue_detail(
@@ -95,11 +104,11 @@ pub async fn my_issue_detail(
     user: AuthUser,
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<IssueDetail>> {
-    user.require_role(&[ROLE_STUDENT])?;
     let issue = get_issue(&state.db, id).await?;
-    if issue.student_id != user.id() {
-        return Err(AppError::Forbidden("只能查看本人的诉求".into()));
-    }
+    user.check(
+        crate::permissions::ISSUE_VIEW_OWN,
+        &crate::permissions::Ctx::owner(issue.submitter_id),
+    )?;
     Ok(Json(build_issue_detail(&state.db, &issue).await?))
 }
 
@@ -109,15 +118,15 @@ pub async fn supplement_issue(
     Path(id): Path<Uuid>,
     Json(req): Json<SupplementReq>,
 ) -> AppResult<Json<IssueDetail>> {
-    user.require_role(&[ROLE_STUDENT])?;
     let content = req.content.trim();
     if content.is_empty() {
         return Err(AppError::BadRequest("补充内容不能为空".into()));
     }
     let issue = get_issue(&state.db, id).await?;
-    if issue.student_id != user.id() {
-        return Err(AppError::Forbidden("只能操作本人的诉求".into()));
-    }
+    user.check(
+        crate::permissions::ISSUE_SUPPLEMENT,
+        &crate::permissions::Ctx::owner(issue.submitter_id),
+    )?;
     if issue.status != STATUS_SUPPLEMENT {
         return Err(AppError::Conflict("当前状态无需补充材料".into()));
     }
@@ -149,16 +158,16 @@ pub async fn rate_issue(
     Path(id): Path<Uuid>,
     Json(req): Json<RatingReq>,
 ) -> AppResult<Json<IssueDetail>> {
-    user.require_role(&[ROLE_STUDENT])?;
     if !RATINGS.contains(&req.rating.as_str()) {
         return Err(AppError::BadRequest(
             "评分必须是：满意 / 一般 / 不满意".into(),
         ));
     }
     let issue = get_issue(&state.db, id).await?;
-    if issue.student_id != user.id() {
-        return Err(AppError::Forbidden("只能评价本人的诉求".into()));
-    }
+    user.check(
+        crate::permissions::ISSUE_RATE,
+        &crate::permissions::Ctx::owner(issue.submitter_id),
+    )?;
     if issue.status != STATUS_COMPLETED {
         return Err(AppError::Conflict("仅办结的诉求可评价".into()));
     }
@@ -198,16 +207,4 @@ fn validate_create(req: &CreateIssueReq) -> AppResult<()> {
         return Err(AppError::BadRequest("详细描述至少 10 个字".into()));
     }
     Ok(())
-}
-
-fn to_list_item(issue: &Issue) -> IssueListItem {
-    IssueListItem {
-        id: issue.id,
-        issue_no: issue.issue_no.clone(),
-        title: issue.title.clone(),
-        category: issue.category.clone(),
-        status: issue.status.clone(),
-        latest_progress: issue.latest_progress.clone(),
-        updated_at: issue.updated_at,
-    }
 }

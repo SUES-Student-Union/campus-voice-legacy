@@ -5,7 +5,10 @@ pub mod error;
 pub mod guards;
 pub mod handlers;
 pub mod models;
+pub mod permissions;
 pub mod routes;
+pub mod seed;
+pub mod sso;
 pub mod state;
 
 pub use config::AppConfig;

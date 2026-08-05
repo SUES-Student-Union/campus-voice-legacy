@@ -5,7 +5,7 @@
 
   <view class="number-card card" bindtap="copyId">
     <view class="number-label">诉求编号</view>
-    <view class="number-value">{{id}}</view>
+    <view class="number-value">{{no}}</view>
     <view class="copy-hint">点击复制编号</view>
   </view>
 

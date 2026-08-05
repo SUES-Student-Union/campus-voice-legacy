@@ -23,15 +23,6 @@
         </picker>
       </view>
       <view class="field">
-        <view class="field-label">相关部门 <text class="optional">选填</text></view>
-        <picker range="{{departments}}" value="{{departmentIndex}}" bindchange="onDepartmentChange">
-          <view class="select-control">
-            <text>{{departments[departmentIndex]}}</text><text class="chevron">›</text>
-          </view>
-        </picker>
-        <view class="routing-hint">不确定时无需选择，最终流转部门由权益工作小组确认。</view>
-      </view>
-      <view class="field">
         <view class="field-label"><text class="required">*</text>标题</view>
         <input class="text-control" maxlength="40" placeholder="请概括描述问题" value="{{title}}" bindinput="onTitleInput" />
         <view class="field-hint">{{title.length}} / 40</view>

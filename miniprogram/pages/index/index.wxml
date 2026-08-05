@@ -36,6 +36,19 @@
       </view>
     </view>
 
+    <view class="identity-card card">
+      <view class="identity-head">
+        <view>
+          <view class="identity-title">当前身份</view>
+          <view class="identity-sub">{{roleLabel}}（开发演示用身份切换）</view>
+        </view>
+        <view wx:if="{{role !== 'student'}}" class="admin-btn" bindtap="goAdmin">进入管理端 ›</view>
+      </view>
+      <view class="identity-row">
+        <view wx:for="{{rolePresets}}" wx:key="key" class="identity-chip {{role === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="switchRole">{{item.label}}</view>
+      </view>
+    </view>
+
     <view class="section">
       <view class="section-heading">
         <text class="section-title">近期办理</text>
@@ -60,7 +73,7 @@
 
       <view wx:if="{{currentIssue}}" class="latest-card card" bindtap="goIssueDetail">
         <view class="latest-top">
-          <text class="issue-number">{{currentIssue.id}}</text>
+          <text class="issue-number">{{currentIssue.no}}</text>
           <text class="status-tag status-{{currentIssue.statusKey}}">{{currentIssue.status}}</text>
         </view>
         <view class="latest-title">{{currentIssue.title}}</view>

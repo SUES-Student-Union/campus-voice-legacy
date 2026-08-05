@@ -1,0 +1,114 @@
+page {
+  background: #f5f7f6;
+}
+
+.admin-issues {
+  padding: 24rpx 32rpx 48rpx;
+}
+
+.page-head {
+  margin-bottom: 20rpx;
+}
+
+.page-title {
+  font-size: 40rpx;
+  font-weight: 750;
+  line-height: 56rpx;
+}
+
+.tab-scroll {
+  margin-bottom: 20rpx;
+}
+
+.tab-row {
+  display: flex;
+  gap: 16rpx;
+  white-space: nowrap;
+}
+
+.tab-item {
+  padding: 12rpx 26rpx;
+  border-radius: 32rpx;
+  background: #e9eeec;
+  color: #66736f;
+  font-size: 24rpx;
+}
+
+.tab-item.active {
+  background: #176b5b;
+  color: #fff;
+}
+
+.issue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.issue-card {
+  padding: 24rpx;
+}
+
+.issue-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14rpx;
+}
+
+.issue-id {
+  color: #929d99;
+  font-size: 22rpx;
+}
+
+.issue-title {
+  font-size: 30rpx;
+  font-weight: 650;
+  line-height: 42rpx;
+}
+
+.issue-meta {
+  margin-top: 10rpx;
+  color: #66736f;
+  font-size: 22rpx;
+}
+
+.dot {
+  margin: 0 8rpx;
+}
+
+.progress-box {
+  margin-top: 14rpx;
+  padding: 16rpx;
+  border-radius: 10rpx;
+  background: #f4f7f6;
+}
+
+.progress-text {
+  color: #35413e;
+  font-size: 24rpx;
+  line-height: 36rpx;
+}
+
+.issue-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14rpx;
+  color: #929d99;
+  font-size: 22rpx;
+}
+
+.view-link {
+  color: #176b5b;
+}
+
+.empty-state {
+  padding: 120rpx 0;
+  text-align: center;
+  color: #66736f;
+}
+
+.empty-title {
+  font-size: 28rpx;
+}

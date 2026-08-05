@@ -1,10 +1,19 @@
-import { getIssues } from '../../utils/issues'
+import { get, getRole, isStaff, ssoLogin } from '../../utils/api'
+import { ApiIssueListItem, IssueListItem, toIssueListItem } from '../../types/api'
 
-const RATING_SCORES: Record<string, number> = { '满意': 5, '一般': 3, '不满意': 1 }
+const ROLE_PRESETS: { key: string; label: string; campusId: string }[] = [
+  { key: 'student', label: '学生', campusId: '20260001' },
+  { key: 'worker', label: '权益小组', campusId: 'W0001' },
+  { key: 'department_staff', label: '部门老师', campusId: 'T0001' },
+  { key: 'admin', label: '管理员', campusId: 'admin' }
+]
 
 Component({
   data: {
-    currentIssue: null as ReturnType<typeof getIssues>[number] | null,
+    role: 'student',
+    roleLabel: '学生',
+    rolePresets: ROLE_PRESETS,
+    currentIssue: null as IssueListItem | null,
     completedCount: 0,
     processingCount: 0,
     averageRating: '—',
@@ -22,20 +31,56 @@ Component({
   },
   pageLifetimes: {
     show() {
-      const issues = getIssues()
-      const rated = issues.filter((issue) => issue.rating)
-      const averageRating = rated.length
-        ? (rated.reduce((sum, issue) => sum + (RATING_SCORES[issue.rating as string] || 0), 0) / rated.length).toFixed(1)
-        : '—'
-      this.setData({
-        currentIssue: issues[0] || null,
-        completedCount: issues.filter((issue) => issue.statusKey === 'completed').length,
-        processingCount: issues.filter((issue) => ['accepted', 'processing', 'review'].includes(issue.statusKey)).length,
-        averageRating
-      })
+      this.syncRole()
+      this.loadOverview()
     }
   },
   methods: {
+    syncRole() {
+      const role = getRole()
+      const preset = ROLE_PRESETS.find((r) => r.key === role)
+      this.setData({ role, roleLabel: preset ? preset.label : '学生' })
+    },
+    switchRole(event: any) {
+      const key = event.currentTarget.dataset.key
+      if (key === this.data.role) return
+      const preset = ROLE_PRESETS.find((r) => r.key === key)
+      if (!preset) return
+      wx.showModal({
+        title: '切换身份',
+        content: `切换为「${preset.label}」？（开发环境演示用）`,
+        success: (res) => {
+          if (!res.confirm) return
+          ssoLogin(preset.campusId, 'demo123')
+            .then(() => {
+              this.syncRole()
+              wx.showToast({ title: `已切换为${preset.label}`, icon: 'none' })
+              this.loadOverview()
+            })
+            .catch((err) => {
+              wx.showToast({ title: (err as Error).message || '切换失败', icon: 'none' })
+            })
+        }
+      })
+    },
+    goAdmin() {
+      if (isStaff()) {
+        wx.navigateTo({ url: '/pages/admin/home/home' })
+      }
+    },
+    async loadOverview() {
+      try {
+        const list = await get<ApiIssueListItem[]>('/my/issues')
+        const items = list.map(toIssueListItem)
+        this.setData({
+          currentIssue: items[0] || null,
+          completedCount: items.filter((i) => i.statusKey === 'completed').length,
+          processingCount: items.filter((i) => ['accepted', 'processing', 'review'].includes(i.statusKey)).length
+        })
+      } catch (err) {
+        wx.showToast({ title: (err as Error).message || '加载失败', icon: 'none' })
+      }
+    },
     goSubmit() {
       wx.navigateTo({ url: '/pages/submit/submit' })
     },

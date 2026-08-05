@@ -17,7 +17,7 @@
     <view wx:for="{{filteredIssues}}" wx:key="id" class="issue-card card" data-id="{{item.id}}" bindtap="openIssue">
       <view class="issue-top">
         <text class="status-tag status-{{item.statusKey}}">{{item.status}}</text>
-        <text class="issue-id">{{item.id}}</text>
+        <text class="issue-id">{{item.no}}</text>
       </view>
       <view class="issue-title">{{item.title}}</view>
       <view class="issue-meta">

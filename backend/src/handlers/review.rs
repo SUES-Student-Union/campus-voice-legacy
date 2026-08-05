@@ -15,7 +15,10 @@ pub async fn save_review(
     Path(id): Path<Uuid>,
     Json(req): Json<ReviewReq>,
 ) -> AppResult<Json<IssueDetail>> {
-    user.require_role(&[crate::auth::ROLE_WORKER, crate::auth::ROLE_ADMIN])?;
+    user.check(
+        crate::permissions::REVIEW_SAVE,
+        &crate::permissions::Ctx::none(),
+    )?;
     let issue = get_issue(&state.db, id).await?;
 
     let title = req.title.trim();
@@ -86,7 +89,7 @@ pub async fn save_review(
             .await?;
             notify::notify_user(
                 &mut tx,
-                issue.student_id,
+                issue.submitter_id,
                 "诉求已办结",
                 &format!("您提交的诉求 {} 已办结，可查看办理结果。", issue.issue_no),
                 "issue",

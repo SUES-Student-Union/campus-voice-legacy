@@ -11,7 +11,8 @@ pub mod stats;
 
 use crate::error::{AppError, AppResult};
 use crate::models::{
-    Attachment, Issue, IssueDetail, IssueProgress, ProgressOut, Reply, ReplyOut, User,
+    AdminIssueDetail, Attachment, Issue, IssueDetail, IssueProgress, ProgressOut, Reply, ReplyOut,
+    ReviewDraftOut, User,
 };
 use sqlx::postgres::PgArguments;
 use sqlx::{Arguments, PgPool};
@@ -127,5 +128,62 @@ pub async fn build_issue_detail(pool: &PgPool, issue: &Issue) -> AppResult<Issue
                 created_at: a.created_at,
             })
             .collect(),
+    })
+}
+
+pub async fn build_admin_issue_detail(pool: &PgPool, issue: &Issue) -> AppResult<AdminIssueDetail> {
+    let base = build_issue_detail(pool, issue).await?;
+
+    let student_name = sqlx::query_scalar::<_, String>("SELECT name FROM users WHERE id = $1")
+        .bind(issue.submitter_id)
+        .fetch_optional(pool)
+        .await?;
+
+    let assignee_name = match issue.assignee_id {
+        Some(aid) => {
+            sqlx::query_scalar::<_, String>("SELECT name FROM users WHERE id = $1")
+                .bind(aid)
+                .fetch_optional(pool)
+                .await?
+        }
+        None => None,
+    };
+
+    #[derive(sqlx::FromRow)]
+    struct DraftRow {
+        title: String,
+        location: String,
+        summary: String,
+        reply: String,
+        published_at: Option<chrono::DateTime<chrono::Utc>>,
+    }
+
+    let draft = sqlx::query_as::<_, DraftRow>(
+        "SELECT title, location, summary, reply, published_at FROM public_cases WHERE issue_id = $1",
+    )
+    .bind(issue.id)
+    .fetch_optional(pool)
+    .await?;
+
+    let (review_draft, review_published) = match draft {
+        Some(d) => (
+            Some(ReviewDraftOut {
+                title: d.title,
+                location: d.location,
+                summary: d.summary,
+                reply: d.reply,
+            }),
+            d.published_at.is_some(),
+        ),
+        None => (None, false),
+    };
+
+    Ok(AdminIssueDetail {
+        base,
+        student_name,
+        deadline: issue.deadline,
+        assignee_name,
+        review_draft,
+        review_published,
     })
 }

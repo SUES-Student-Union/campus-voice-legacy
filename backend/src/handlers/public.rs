@@ -77,6 +77,12 @@ async fn to_out(state: &AppState, row: PublicCase) -> AppResult<PublicCaseOut> {
     .bind(row.issue_id)
     .fetch_all(&state.db)
     .await?;
+    let department_name: Option<String> = sqlx::query_scalar(
+        "SELECT d.name FROM issues i LEFT JOIN departments d ON d.id = i.department_id WHERE i.id = $1",
+    )
+    .bind(row.issue_id)
+    .fetch_optional(&state.db)
+    .await?;
     Ok(PublicCaseOut {
         id: row.id,
         category: row.category,
@@ -86,6 +92,7 @@ async fn to_out(state: &AppState, row: PublicCase) -> AppResult<PublicCaseOut> {
         summary: row.summary,
         reply: row.reply,
         status: row.status,
+        department_name,
         submitted_at: row.submitted_at,
         completed_at: row.completed_at,
         progress: progress

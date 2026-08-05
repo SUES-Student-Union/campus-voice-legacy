@@ -1,13 +1,13 @@
 # CampusVoice 后端设计文档（Rust）
 
 > 版本：v0.2｜状态：M1 已实现（2026-08）
-> 关联需求：[`REQUIREMENTS.md`](../REQUIREMENTS.md)｜前端：微信小程序 `miniprogram/`、管理端 `admin-web/`
+> 关联需求：[`REQUIREMENTS.md`](../REQUIREMENTS.md)｜前端：微信小程序 `miniprogram/`（学生端 + 规划中的小程序管理端）
 
 ## 1. 概述
 
 ### 1.1 背景
 
-当前仓库是「程园小二」的双端高保真 Demo：小程序端与管理端全部使用本地 mock 数据，没有真实服务端、数据库、登录与持久化。本后端为 V1 提供真实可演进的 API 服务，支撑完整权益服务闭环：
+当前仓库是「程园小二」的双端高保真 Demo：小程序端已接入真实后端；管理端将以**小程序内页面**实现（worker/department_staff/admin 角色），旧 `admin-web/` 独立网页仅作界面参考。本后端为 V1 提供真实可演进的 API 服务，支撑完整权益服务闭环：
 
 ```text
 提交诉求 -> 分类受理 -> 部门流转 -> 跟进处理 -> 结果反馈 -> 脱敏公开
@@ -16,12 +16,12 @@
 ### 1.2 目标（本轮范围）
 
 - 纯后端 API 服务 + 数据库迁移 + 自动化测试 + 工程文档。
-- 小程序端、管理端暂不改造，接口按本文档约定对接。
+- 小程序学生端已接入真实 API；管理端（worker/department_staff/admin）规划为小程序内页面并接入同一套 API。
 - 覆盖 V1 验收标准：提交/附件、状态进度查询、受理流转、部门回复、审核脱敏公开、操作日志、通知、满意度评价。
 
 ### 1.3 非目标
 
-- 前端两端接入真实 API（后续单独迭代）。
+- 独立 Web 管理端（旧 `admin-web/` 网页仅作界面参考，不再演进）。
 - 与学校 OA / 工单系统对接、AI 处理、多级审批（REQUIREMENTS §9）。
 - 公众号 H5 入口。
 
@@ -67,8 +67,8 @@ HTTP 层(handlers) -> 领域/服务层(domain) -> 数据访问(sqlx/models)
 ### 3.3 与前端对接
 
 - 统一前缀 `/api/v1`，JSON 响应。
-- 小程序端：`wx.login()` -> code -> `POST /api/v1/auth/wechat` -> 拿 JWT -> 请求头 `Authorization: Bearer <token>`。
-- 管理端：账号密码 -> `POST /api/v1/auth/login` -> JWT。
+- 小程序学生端：`wx.login()` -> code -> `POST /api/v1/auth/wechat` -> 拿 JWT -> 请求头 `Authorization: Bearer <token>`。
+- 管理端（小程序内页面）：员工账号 -> `POST /api/v1/auth/login` -> JWT，按角色路由。
 - 状态码语义：`200` 成功、`400` 参数、`401` 未认证、`403` 越权、`404` 不存在、`409` 冲突、`413` 附件过大、`500` 服务端。
 
 ## 4. 数据模型
@@ -97,10 +97,10 @@ issues ─< issue_progress
 
 | 表 | 用途 | 关键字段 |
 | --- | --- | --- |
-| `users` | 学生/员工/管理员 | `openid`(学生,唯一,可空)、`username`(员工,唯一)、`password_hash`、`role`(`student/worker/department_staff/admin`)、`department_id` |
+| `users` | 学生/员工/管理员 | `campus_id`(学号/工号,唯一,统一身份)、`openid`(微信绑定)、`username`/`password_hash`(员工登录)、`role`、`department_id` |
 | `departments` | 职能部门 | `name`、`code` |
 | `categories` | 诉求分类 | `name`、`sort`（种子：宿舍/食堂/教学/交通/校园环境/网络/医疗健康/学生服务/其他） |
-| `issues` | 诉求主表 | `issue_no`、`kind`(类型)、`category`、`campus`、`location`、`status`、`priority`、`is_public`(最终公开)、`public_will`(学生意愿)、`department_id`、`assignee_id`、`deadline`、`latest_progress`、`rating`/`rating_comment`/`rated_at` |
+| `issues` | 诉求主表 | `issue_no`、`submitter_id`(提交人=学生或老师)、`kind`、`category`、`campus`、`location`、`status`、`priority`、`is_public`、`public_will`、`department_id`、`assignee_id`、`deadline`、`latest_progress`、`rating`/`rating_comment`/`rated_at` |
 | `issue_progress` | 完整时间线 | `status`、`operator_id`、`operator_name`、`note` |
 | `replies` | 部门正式回复 | `issue_id`、`department_id`、`author_id`、`content` |
 | `attachments` | 附件（仅图片） | `issue_id`、`original_name`、`stored_name`、`size`、`mime`、`is_public` |
@@ -117,26 +117,42 @@ issues ─< issue_progress
 
 ## 5. 认证与授权
 
-### 5.1 角色与数据隔离（对应 REQUIREMENTS §3、§7）
+### 5.1 角色与权限模型（借鉴 LuckPerms：组 + 节点 + 上下文）
 
-| 角色 | 能做什么 | 数据范围 |
+实现见 `src/permissions.rs`。用户角色即「组」，组之间可继承，权限按**节点**授权，节点带**上下文作用域**：
+
+```text
+admin ──继承──> worker ──继承──> student
+department_staff ──继承──> student
+```
+
+| 作用域 | 含义 | 示例 |
 | --- | --- | --- |
-| `student` | 提交/补充/查看本人诉求/评价；上传附件 | 仅本人 |
-| `worker` | 受理、分类、指派、请求补充、关闭、审核公开、日志、看板 | 全部 |
-| `department_staff` | 查看本部门诉求、写进展、正式回复、申请办结 | 仅本部门 |
-| `admin` | 管理账号/部门/分类、审计（含 worker 全部能力） | 全部 |
+| `Any` | 无条件 | `issue.accept`（worker+）、`issue.submit`（student） |
+| `Own` | 仅本人诉求 | `issue.view.own`、`issue.supplement`、`issue.rate`、`attachment.upload` |
+| `Dept` | 仅本部门诉求 | `issue.reply`、`issue.progress`、`issue.view.all`（部门老师） |
 
-### 5.2 登录
+- 关键节点：`issue.submit/view.own/view.all/supplement/rate/accept/assign/request_supplement/close/merge/progress/reply`、`review.save/approve/reject`、`audit.view`、`dashboard.view`、`department.manage`、`attachment.upload/download`、`notification.view`。
+- 校验入口：`AuthUser::check(node, ctx)`；上下文 `Ctx::for_issue(&issue)` 携带 `owner=学生`、`dept=负责部门`，一个函数同时完成「角色/越权」与「数据范围」判断，取代散落的 `require_role` + 归属判断。
+- JWT `Claims` 内附 `dept`，避免每次校验查库。
+- 与 LuckPerms 的取舍：V1 不做动态节点存储、显式否定（`!node`）与 web 编辑器；组与节点为声明式常量。
 
-- **学生**：`POST /api/v1/auth/wechat {code}`。配置了 `WECHAT_APPID/SECRET` 时调用 `jscode2session` 换 `openid`；未配置（开发）时按 `dev_{code}` 生成伪 openid 降级，便于本地调试。签发 JWT。
-- **员工**：`POST /api/v1/auth/login {username,password}`，argon2 校验。
-- **种子账号**：启动时若库中无对应 `username`，则按 `ADMIN_USERNAME/ADMIN_PASSWORD`（默认 `admin`，需修改）创建管理员，并确保部门/分类种子存在。
+### 5.2 登录（统一身份）
+
+**身份权威源是学校统一认证（学号/工号 + 密码），微信 openid 仅是快捷通道。**
+
+- **学生/老师**：`POST /api/v1/auth/sso {campus_id, password, code}`。后端经 `sso.rs` 适配器调学校统一认证（CAS/OAuth）验证，拿到学号/工号、姓名、角色与部门，创建/更新用户并**绑定当前微信 openid**，签发 JWT。首次需账号密码，之后 `wx.login` 走 openid 快捷登录。
+- **老师可提交反馈**：所有人都是「用户」，都可提交诉求、查看「我的诉求」；员工（worker/department_staff/admin）额外有管理权限。`issues.submitter_id` 因此命名，而非 `student_id`。
+- **开发降级**：未配置学校认证时，`sso.rs` 用 mock 校验（任意账号或固定演示账号），接口契约一致，上线替换实现。
+- **员工账号**：同走统一认证（工号）后自动带角色/部门；不再单独维护 `username/password` 登录（保留兼容）。
+
+**网络边界（部署层）**：服务部署于校园内网，仅校园网可达；校外经学校 VPN（vpn.sues.edu.cn）接入，防止校外攻击。代码侧配合 HTTPS、限流、密钥环境变量化。
 
 ### 5.3 会话
 
-- JWT HS256，`sub`=user_id、`role`、`name`、`exp`；有效期由 `JWT_EXPIRES_HOURS` 控制（默认 168h）。
-- 请求经 `AuthUser` 提取器校验签名与有效期；`require_role(&claims, ["worker","admin"])` 做角色门禁。
-- 附件下载 `/attachments/:id` 单独做**数据隔离**：学生仅本人、员工仅本部门、worker/admin 全部、`is_public=true` 对登录用户开放。
+- JWT HS256，`sub`=user_id、`role`、`name`、`dept`、`exp`；有效期由 `JWT_EXPIRES_HOURS` 控制（默认 168h）。
+- 请求经 `AuthUser` 提取器校验签名与有效期；`AuthUser::check` 做权限节点校验。
+- 附件下载 `/attachments/:id` 单独做数据隔离：公开附件任意登录用户、否则按 `attachment.download` 上下文（学生本人 / 部门 / worker）。
 
 ## 6. 状态机（服务端强制）
 
@@ -301,6 +317,6 @@ docker compose up --build
 ## 10. 迭代计划
 
 - **M1（已完成）**：工程骨架 + 迁移 + 核心闭环 API + 认证 + 状态机 + 审计 + 通知 + 附件 + 集成测试 + 文档。
-- **M2**：管理端 admin-web 接入真实 API（替换 mock）。
-- **M3**：小程序端接入（微信登录 + token 存取 + 订阅消息）。
-- **M4**：OpenAPI(utoipa)+swagger、CI、超期提醒、看板报表导出、对象存储迁移。
+- **M2（已完成）**：小程序内管理端页面（worker/department_staff/admin：受理、流转、回复、审核、日志、看板）；LuckPerms 式权限层（组继承 + 节点 + 上下文）。
+- **M3（进行中）**：统一身份改造——学校统一认证（学号/工号+密码 + openid 绑定，`sso.rs` 适配器）、`users.campus_id`、`issues.student_id`→`submitter_id`、前端去掉员工守卫（老师也可提交反馈）；网络边界校园网+VPN（部署层）。
+- **M4**：微信订阅消息、超期提醒、OpenAPI(utoipa)+swagger、CI、对象存储迁移。

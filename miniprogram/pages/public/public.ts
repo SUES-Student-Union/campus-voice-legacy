@@ -1,5 +1,5 @@
-import { publicCases } from '../../data/mock'
-import { PublicCase } from '../../types/issue'
+import { get } from '../../utils/api'
+import { ApiPublicCase, PublicCaseItem, toPublicCaseItem } from '../../types/api'
 
 Component({
   data: {
@@ -12,10 +12,24 @@ Component({
       { key: 'processing', label: '处理中' }
     ],
     activeStatus: 'all',
-    cases: publicCases,
-    filteredCases: publicCases as PublicCase[]
+    cases: [] as PublicCaseItem[],
+    filteredCases: [] as PublicCaseItem[]
+  },
+  pageLifetimes: {
+    show() {
+      this.loadCases()
+    }
   },
   methods: {
+    async loadCases() {
+      try {
+        const list = await get<ApiPublicCase[]>('/public/cases')
+        this.setData({ cases: list.map(toPublicCaseItem) }, () => this.applyFilter())
+      } catch (err) {
+        wx.showToast({ title: (err as Error).message || '加载失败', icon: 'none' })
+        this.setData({ cases: [], filteredCases: [] })
+      }
+    },
     onKeywordInput(event: any) {
       this.setData({ keyword: event.detail.value }, () => this.applyFilter())
     },

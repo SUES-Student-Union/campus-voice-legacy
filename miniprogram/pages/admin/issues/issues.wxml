@@ -1,0 +1,34 @@
+<view class="admin-issues">
+  <view class="page-head">
+    <view class="page-title">{{role === 'department_staff' ? '本部门诉求' : '诉求受理'}}</view>
+  </view>
+
+  <scroll-view class="tab-scroll" scroll-x show-scrollbar="false">
+    <view class="tab-row">
+      <view wx:for="{{tabs}}" wx:key="key" class="tab-item {{active === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="selectTab">{{item.label}}</view>
+    </view>
+  </scroll-view>
+
+  <view class="issue-list">
+    <view wx:for="{{issues}}" wx:key="id" class="issue-card card" data-id="{{item.id}}" bindtap="openIssue">
+      <view class="issue-top">
+        <text class="status-tag status-{{item.statusKey}}">{{item.status}}</text>
+        <text class="issue-id">{{item.no}}</text>
+      </view>
+      <view class="issue-title">{{item.title}}</view>
+      <view class="issue-meta">
+        <text>{{item.category}}</text><text class="dot">·</text><text>{{item.priority}}优先级</text><text class="dot">·</text><text>{{item.department}}</text>
+      </view>
+      <view class="progress-box">
+        <view class="progress-text">{{item.latestProgress}}</view>
+      </view>
+      <view class="issue-footer">
+        <text>提交于 {{item.createdAt}}</text><text class="view-link">查看办理 ›</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{issues.length === 0}}" class="empty-state">
+    <view class="empty-title">暂无匹配诉求</view>
+  </view>
+</view>

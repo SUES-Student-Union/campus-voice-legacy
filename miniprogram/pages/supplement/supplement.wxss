@@ -1,0 +1,66 @@
+page {
+  background: #f5f7f6;
+}
+
+.supplement-page {
+  padding-top: 32rpx;
+}
+
+.intro-block {
+  margin-bottom: 28rpx;
+}
+
+.intro-title {
+  font-size: 40rpx;
+  line-height: 56rpx;
+  font-weight: 750;
+}
+
+.intro-copy {
+  margin-top: 8rpx;
+  color: #66736f;
+  font-size: 24rpx;
+  line-height: 40rpx;
+}
+
+.form-section {
+  margin-top: 20rpx;
+  padding: 28rpx 24rpx;
+}
+
+.field-label {
+  margin-bottom: 12rpx;
+  color: #35413e;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.required {
+  margin-right: 6rpx;
+  color: #c53b32;
+}
+
+.textarea-control {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 220rpx;
+  padding: 20rpx 22rpx;
+  line-height: 42rpx;
+  background: #fff;
+  border: 2rpx solid #dce3e0;
+  border-radius: 12rpx;
+  color: #17201e;
+  font-size: 27rpx;
+}
+
+.field-hint {
+  margin-top: 8rpx;
+  color: #929d99;
+  font-size: 21rpx;
+  text-align: right;
+}
+
+.submit-button {
+  margin-top: 40rpx;
+  width: 100%;
+}

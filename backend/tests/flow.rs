@@ -110,10 +110,12 @@ async fn full_core_flow() -> anyhow::Result<()> {
     assert_eq!(status, StatusCode::OK, "{body}");
     assert_eq!(body["status"], "已办结");
 
-    // 7. 公开列表可见（无需登录）
+    // 7. 公开列表可见（无需登录），含办理部门
     let (status, list) = request(&app, Method::GET, "/api/v1/public/cases", None, None).await?;
     assert_eq!(status, StatusCode::OK);
     assert_eq!(list.as_array().unwrap().len(), 1);
+    assert_eq!(list[0]["department_name"], "后勤实业发展中心");
+    assert_eq!(list[0]["title"], "公共洗衣房设备维修");
 
     // 8. 学生评价 + 仅一次
     let (status, body) = request(
@@ -159,6 +161,73 @@ async fn full_core_flow() -> anyhow::Result<()> {
     .await?;
     assert_eq!(status, StatusCode::OK);
     assert!(!notifs.as_array().unwrap().is_empty());
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn unified_identity_sso_and_teacher_submit() -> anyhow::Result<()> {
+    let app = setup().await?;
+
+    // 学生：学号+密码 校园登录 -> 绑定 openid
+    let (status, body) = request(
+        &app,
+        Method::POST,
+        "/api/v1/auth/sso",
+        None,
+        Some(json!({ "campus_id": "20260001", "password": "p", "code": "s1" })),
+    )
+    .await?;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["user"]["role"], "student");
+    assert_eq!(body["user"]["campus_id"], "20260001");
+
+    // 微信快捷登录（同一 openid）-> 命中已绑定校园账号
+    let (status, body) = request(
+        &app,
+        Method::POST,
+        "/api/v1/auth/wechat",
+        None,
+        Some(json!({ "code": "anything" })),
+    )
+    .await?;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["user"]["campus_id"], "20260001");
+
+    // 老师：工号登录 -> department_staff + 后勤部门
+    let (status, body) = request(
+        &app,
+        Method::POST,
+        "/api/v1/auth/sso",
+        None,
+        Some(json!({ "campus_id": "T2026001", "password": "p", "code": "s2" })),
+    )
+    .await?;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["user"]["role"], "department_staff");
+    assert!(body["user"]["department_id"].is_string());
+
+    // 老师也能提交反馈（权限继承 student 组 -> issue.submit）
+    let token = body["token"].as_str().unwrap().to_string();
+    let (status, body) = request(
+        &app,
+        Method::POST,
+        "/api/v1/issues",
+        Some(&token),
+        Some(json!({
+            "kind": "意见建议",
+            "category": "食堂",
+            "campus": "松江校区",
+            "location": "第一食堂",
+            "title": "老师反馈：食堂窗口",
+            "description": "作为老师也希望反馈一下食堂服务问题。",
+            "public_will": false,
+            "contact": ""
+        })),
+    )
+    .await?;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(body["status"], "待受理");
 
     Ok(())
 }

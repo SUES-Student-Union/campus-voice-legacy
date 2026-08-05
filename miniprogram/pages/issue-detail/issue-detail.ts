@@ -1,10 +1,10 @@
-import { Issue } from '../../types/issue'
-import { getIssueById, updateIssueRating } from '../../utils/issues'
+import { downloadAttachment, get, post } from '../../utils/api'
+import { ApiIssueDetail, IssueDetail, toIssueDetail } from '../../types/api'
 
 Page({
   data: {
     id: '',
-    issue: null as Issue | null,
+    issue: null as IssueDetail | null,
     ratings: ['满意', '一般', '不满意']
   },
   onLoad(options: Record<string, string>) {
@@ -14,33 +14,42 @@ Page({
   onShow() {
     if (this.data.id) this.loadIssue(this.data.id)
   },
-  loadIssue(id: string) {
-    const issue = getIssueById(id)
-    if (!issue) {
-      wx.showToast({ title: '未找到该诉求', icon: 'none' })
-      return
+  async loadIssue(id: string) {
+    try {
+      const api = await get<ApiIssueDetail>(`/my/issues/${id}`)
+      const issue = toIssueDetail(api)
+      if (api.attachments.length) {
+        const paths = await Promise.all(api.attachments.map((a) => downloadAttachment(a.id)))
+        issue.images = paths.filter((p) => p !== '')
+      }
+      this.setData({ issue })
+    } catch (err) {
+      wx.showToast({ title: (err as Error).message || '加载失败', icon: 'none' })
     }
-    this.setData({ issue })
   },
   copyId() {
-    if (this.data.issue) wx.setClipboardData({ data: this.data.issue.id })
+    if (this.data.issue) wx.setClipboardData({ data: this.data.issue.no })
   },
   previewImage(event: any) {
     const issue = this.data.issue
-    if (!issue) return
-    wx.previewImage({ current: event.currentTarget.dataset.src, urls: issue.images })
+    if (issue && issue.images.length) {
+      wx.previewImage({ current: event.currentTarget.dataset.src, urls: issue.images })
+    }
   },
-  selectRating(event: any) {
+  async selectRating(event: any) {
     const issue = this.data.issue
     if (!issue) return
     const rating = event.currentTarget.dataset.rating
-    const updated = updateIssueRating(issue.id, rating)
-    if (updated) {
-      this.setData({ issue: updated })
+    try {
+      const updated = await post<ApiIssueDetail>(`/my/issues/${issue.id}/rating`, { rating, comment: '' })
+      this.setData({ issue: toIssueDetail(updated) })
       wx.showToast({ title: '感谢你的评价', icon: 'success' })
+    } catch (err) {
+      wx.showToast({ title: (err as Error).message || '评价失败', icon: 'none' })
     }
   },
   addMaterial() {
-    wx.showToast({ title: 'Demo 暂不上传补充材料', icon: 'none' })
+    const issue = this.data.issue
+    if (issue) wx.navigateTo({ url: `/pages/supplement/supplement?id=${issue.id}` })
   }
 })

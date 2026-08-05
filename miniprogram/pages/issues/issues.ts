@@ -1,5 +1,5 @@
-import { Issue } from '../../types/issue'
-import { getIssues } from '../../utils/issues'
+import { get } from '../../utils/api'
+import { ApiIssueListItem, IssueListItem, toIssueListItem } from '../../types/api'
 
 Component({
   data: {
@@ -10,16 +10,24 @@ Component({
       { key: 'completed', label: '已办结' }
     ],
     activeTab: 'all',
-    issues: [] as Issue[],
-    filteredIssues: [] as Issue[]
+    issues: [] as IssueListItem[],
+    filteredIssues: [] as IssueListItem[]
   },
   pageLifetimes: {
-    show() { this.loadIssues() }
+    show() {
+      this.loadIssues()
+    }
   },
   methods: {
-    loadIssues() {
-      const issues = getIssues()
-      this.setData({ issues }, () => this.applyFilter())
+    async loadIssues() {
+      try {
+        const list = await get<ApiIssueListItem[]>('/my/issues')
+        const issues = list.map(toIssueListItem)
+        this.setData({ issues }, () => this.applyFilter())
+      } catch (err) {
+        wx.showToast({ title: (err as Error).message || '加载失败', icon: 'none' })
+        this.setData({ issues: [], filteredIssues: [] })
+      }
     },
     selectTab(event: any) {
       this.setData({ activeTab: event.currentTarget.dataset.key }, () => this.applyFilter())
