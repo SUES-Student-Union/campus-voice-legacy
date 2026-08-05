@@ -1,0 +1,98 @@
+<scroll-view class="scrollarea" scroll-y>
+  <view class="page-shell home-page">
+    <view class="brand-row">
+      <view>
+        <view class="eyebrow">上海工程技术大学学生会权益服务</view>
+        <view class="brand-title">程园小二</view>
+        <view class="brand-copy">提诉求 · 解问题 · 强反馈</view>
+      </view>
+      <view class="service-badge"><view class="online-dot"></view>服务中</view>
+    </view>
+
+    <view class="notice-strip">
+      <text class="notice-label">公告</text>
+      <text class="notice-text">假期诉求统一留存，开学后集中流转；紧急事项请使用校园应急渠道</text>
+    </view>
+
+    <view class="main-action" bindtap="goSubmit" role="button" aria-label="我要反馈">
+      <view class="action-icon">＋</view>
+      <view class="action-body">
+        <view class="action-title">我要反馈</view>
+        <view class="action-desc">意见、咨询、投诉与设施建议</view>
+      </view>
+      <text class="action-arrow">›</text>
+    </view>
+
+    <view class="secondary-grid">
+      <view class="secondary-action card" bindtap="goIssues" role="button">
+        <view class="secondary-icon">进</view>
+        <view class="secondary-title">办理进度</view>
+        <view class="secondary-desc">查看我的诉求</view>
+      </view>
+      <view class="secondary-action card" bindtap="goPublic" role="button">
+        <view class="secondary-icon light">公</view>
+        <view class="secondary-title">公开反馈</view>
+        <view class="secondary-desc">查看典型办理结果</view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-heading">
+        <text class="section-title">近期办理</text>
+        <text class="section-link" bindtap="goIssues">查看全部</text>
+      </view>
+      <view class="overview-row">
+        <view class="overview-item">
+          <text class="overview-value">{{processingCount}}</text>
+          <text class="overview-label">处理中</text>
+        </view>
+        <view class="overview-divider"></view>
+        <view class="overview-item">
+          <text class="overview-value">{{completedCount}}</text>
+          <text class="overview-label">已办结</text>
+        </view>
+        <view class="overview-divider"></view>
+        <view class="overview-item">
+          <text class="overview-value">{{averageRating}}</text>
+          <text class="overview-label">平均评分</text>
+        </view>
+      </view>
+
+      <view wx:if="{{currentIssue}}" class="latest-card card" bindtap="goIssueDetail">
+        <view class="latest-top">
+          <text class="issue-number">{{currentIssue.id}}</text>
+          <text class="status-tag status-{{currentIssue.statusKey}}">{{currentIssue.status}}</text>
+        </view>
+        <view class="latest-title">{{currentIssue.title}}</view>
+        <view class="latest-progress">{{currentIssue.latestProgress}}</view>
+        <view class="latest-meta">更新于 {{currentIssue.updatedAt}}</view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-heading"><text class="section-title">热门办事指引</text></view>
+      <view class="guide-list card">
+        <view wx:for="{{guides}}" wx:key="title" class="guide-item" bindtap="openGuide">
+          <text class="guide-tag">{{item.tag}}</text>
+          <view class="guide-body"><view>{{item.title}}</view><text>{{item.source}}</text></view>
+          <text class="guide-arrow">›</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-heading"><text class="section-title">常见问题</text></view>
+      <view class="faq-list card">
+        <view wx:for="{{faqs}}" wx:key="question" class="faq-item" data-index="{{index}}" bindtap="toggleFaq">
+          <view class="faq-question">
+            <text>{{item.question}}</text>
+            <text class="faq-toggle">{{openFaq === index ? '−' : '+'}}</text>
+          </view>
+          <view wx:if="{{openFaq === index}}" class="faq-answer">{{item.answer}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="privacy-note">平台仅用于校园权益服务，公开内容均经过脱敏审核</view>
+  </view>
+</scroll-view>

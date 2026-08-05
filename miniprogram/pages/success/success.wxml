@@ -1,0 +1,21 @@
+<view class="success-page page-shell">
+  <view class="success-symbol">✓</view>
+  <view class="success-title">诉求提交成功</view>
+  <view class="success-copy">权益工作小组将尽快完成初步受理，关键状态变化会在授权后通知你。</view>
+
+  <view class="number-card card" bindtap="copyId">
+    <view class="number-label">诉求编号</view>
+    <view class="number-value">{{id}}</view>
+    <view class="copy-hint">点击复制编号</view>
+  </view>
+
+  <view class="process-note">
+    <view class="process-title">接下来会发生什么？</view>
+    <view class="process-item"><text class="step">1</text><text>权益工作小组查看并分类受理</text></view>
+    <view class="process-item"><text class="step">2</text><text>转交相关职能部门跟进处理</text></view>
+    <view class="process-item"><text class="step">3</text><text>审核部门回复并反馈办理结果</text></view>
+  </view>
+
+  <button class="primary-button" bindtap="viewIssue">查看诉求详情</button>
+  <button class="secondary-button back-button" bindtap="backHome">返回首页</button>
+</view>

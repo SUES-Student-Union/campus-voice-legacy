@@ -1,0 +1,36 @@
+.submit-page { padding-top: 32rpx; }
+.intro-block { margin-bottom: 28rpx; }
+.intro-title { font-size: 40rpx; line-height: 56rpx; font-weight: 750; }
+.intro-copy { margin-top: 8rpx; color: #66736f; font-size: 24rpx; line-height: 40rpx; }
+.form-section { margin-top: 20rpx; padding: 28rpx 24rpx; }
+.form-section-title { margin-bottom: 30rpx; padding-bottom: 20rpx; border-bottom: 2rpx solid #e9eeec; font-size: 31rpx; font-weight: 700; }
+.field { margin-bottom: 30rpx; }
+.field.no-margin { margin-bottom: 0; }
+.field-label { margin-bottom: 12rpx; color: #35413e; font-size: 26rpx; font-weight: 600; }
+.required { margin-right: 6rpx; color: #c53b32; }
+.optional { margin-left: 8rpx; color: #929d99; font-size: 22rpx; font-weight: 400; }
+.text-control, .select-control, .textarea-control { width: 100%; box-sizing: border-box; background: #fff; border: 2rpx solid #dce3e0; border-radius: 12rpx; color: #17201e; font-size: 27rpx; }
+.text-control, .select-control { height: 88rpx; padding: 0 22rpx; line-height: 84rpx; }
+.select-control { display: flex; align-items: center; justify-content: space-between; }
+.placeholder { color: #929d99; }
+.chevron { color: #66736f; font-size: 40rpx; font-weight: 300; }
+.textarea-control { min-height: 220rpx; padding: 20rpx 22rpx; line-height: 42rpx; }
+.field-hint { margin-top: 8rpx; color: #929d99; font-size: 21rpx; text-align: right; }
+.routing-hint { margin-top: 10rpx; color: #66736f; font-size: 21rpx; line-height: 34rpx; }
+.upload-grid { display: flex; flex-wrap: wrap; gap: 16rpx; }
+.upload-item, .upload-button { position: relative; width: 158rpx; height: 158rpx; border-radius: 12rpx; overflow: hidden; box-sizing: border-box; }
+.upload-item image { width: 100%; height: 100%; }
+.upload-button { display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2rpx dashed #bfc9c5; color: #66736f; font-size: 22rpx; }
+.upload-plus { margin-bottom: 6rpx; color: #176b5b; font-size: 44rpx; line-height: 50rpx; }
+.remove-image { position: absolute; top: 8rpx; right: 8rpx; display: flex; align-items: center; justify-content: center; width: 40rpx; height: 40rpx; color: #fff; background: rgba(23,32,30,.72); border-radius: 50%; font-size: 30rpx; }
+.upload-hint { margin-top: 14rpx; color: #929d99; font-size: 22rpx; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; gap: 24rpx; }
+.setting-title { color: #35413e; font-size: 27rpx; font-weight: 600; }
+.setting-desc { margin-top: 8rpx; color: #66736f; font-size: 22rpx; line-height: 34rpx; }
+.agreement-row { display: flex; align-items: flex-start; margin: 28rpx 4rpx 0; }
+.checkbox { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 36rpx; height: 36rpx; margin: 3rpx 14rpx 0 0; background: #fff; border: 2rpx solid #aab6b1; border-radius: 6rpx; color: #fff; font-size: 24rpx; }
+.checkbox.checked { background: #176b5b; border-color: #176b5b; }
+.agreement-text { color: #66736f; font-size: 23rpx; line-height: 40rpx; }
+.agreement-link { color: #176b5b; }
+.submit-note { margin: 26rpx 4rpx 20rpx; color: #929d99; font-size: 21rpx; line-height: 34rpx; text-align: center; }
+.submit-button { width: 100%; }

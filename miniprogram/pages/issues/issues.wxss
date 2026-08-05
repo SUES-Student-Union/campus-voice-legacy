@@ -1,0 +1,23 @@
+.issues-page { padding: 30rpx 32rpx 52rpx; }
+.page-head { display: flex; align-items: center; justify-content: space-between; }
+.page-title { font-size: 42rpx; line-height: 58rpx; font-weight: 750; }
+.page-copy { margin-top: 6rpx; color: #66736f; font-size: 23rpx; }
+.new-button { height: 72rpx; padding: 0 22rpx; background: #176b5b; color: #fff; font-size: 24rpx; line-height: 72rpx; }
+.tab-scroll { width: 100%; margin: 30rpx 0 24rpx; white-space: nowrap; }
+.tab-row { display: inline-flex; min-width: 100%; padding: 6rpx; box-sizing: border-box; background: #e9eeec; border-radius: 12rpx; }
+.tab-item { flex: 1; min-width: 142rpx; height: 64rpx; color: #66736f; font-size: 24rpx; line-height: 64rpx; text-align: center; border-radius: 8rpx; }
+.tab-item.active { background: #fff; color: #176b5b; font-weight: 700; }
+.issue-card { margin-bottom: 20rpx; padding: 26rpx; }
+.issue-top { display: flex; align-items: center; justify-content: space-between; }
+.issue-id { color: #929d99; font-family: monospace; font-size: 20rpx; }
+.issue-title { margin-top: 20rpx; font-size: 31rpx; line-height: 46rpx; font-weight: 700; }
+.issue-meta { display: flex; flex-wrap: wrap; align-items: center; margin-top: 12rpx; color: #66736f; font-size: 22rpx; line-height: 34rpx; }
+.dot { margin: 0 10rpx; color: #b6c0bc; }
+.progress-box { margin-top: 20rpx; padding: 18rpx 20rpx; background: #f5f7f6; border-left: 5rpx solid #176b5b; border-radius: 6rpx; }
+.progress-label { color: #66736f; font-size: 20rpx; }
+.progress-text { margin-top: 6rpx; color: #35413e; font-size: 24rpx; line-height: 38rpx; }
+.issue-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 20rpx; padding-top: 18rpx; border-top: 2rpx solid #e9eeec; color: #929d99; font-size: 21rpx; }
+.view-link { color: #176b5b; font-weight: 600; }
+.empty-title { color: #35413e; font-size: 30rpx; font-weight: 700; }
+.empty-copy { margin: 12rpx auto 28rpx; max-width: 520rpx; font-size: 24rpx; line-height: 40rpx; }
+.empty-button { width: 260rpx; }

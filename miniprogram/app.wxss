@@ -1,0 +1,102 @@
+page {
+  min-height: 100%;
+  background: #f5f7f6;
+  color: #17201e;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 28rpx;
+}
+
+button {
+  margin: 0;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+button::after {
+  border: 0;
+}
+
+.page-shell {
+  padding: 24rpx 32rpx 48rpx;
+  box-sizing: border-box;
+}
+
+.section {
+  margin-top: 40rpx;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 34rpx;
+  line-height: 48rpx;
+  font-weight: 700;
+}
+
+.section-link {
+  color: #176b5b;
+  font-size: 26rpx;
+}
+
+.card {
+  background: #ffffff;
+  border: 2rpx solid #e3e9e6;
+  border-radius: 16rpx;
+  box-sizing: border-box;
+}
+
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40rpx;
+  padding: 0 14rpx;
+  border-radius: 8rpx;
+  background: #eef1f0;
+  color: #66736f;
+  font-size: 22rpx;
+  font-weight: 600;
+  line-height: 40rpx;
+}
+
+.status-pending { background: #eef1f0; color: #596762; }
+.status-supplement { background: #fff4e2; color: #9b5608; }
+.status-accepted { background: #eaf2fd; color: #246bce; }
+.status-processing { background: #e8f3f0; color: #176b5b; }
+.status-review { background: #f1edfa; color: #7357b5; }
+.status-completed { background: #e8f5ee; color: #23855b; }
+.status-closed { background: #eef1f0; color: #66736f; }
+
+.primary-button {
+  height: 88rpx;
+  background: #176b5b;
+  color: #ffffff;
+  line-height: 88rpx;
+}
+
+.secondary-button {
+  height: 88rpx;
+  background: #ffffff;
+  border: 2rpx solid #176b5b;
+  color: #176b5b;
+  line-height: 84rpx;
+}
+
+.muted {
+  color: #66736f;
+}
+
+.empty-state {
+  padding: 88rpx 32rpx;
+  text-align: center;
+  color: #66736f;
+}
+
+.safe-bottom {
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+}

@@ -1,0 +1,13 @@
+.success-page { padding-top: 80rpx; text-align: center; }
+.success-symbol { display: flex; align-items: center; justify-content: center; width: 104rpx; height: 104rpx; margin: 0 auto; background: #e8f5ee; color: #23855b; border: 4rpx solid #b9dfca; border-radius: 50%; font-size: 54rpx; font-weight: 700; }
+.success-title { margin-top: 28rpx; font-size: 42rpx; line-height: 58rpx; font-weight: 750; }
+.success-copy { max-width: 610rpx; margin: 16rpx auto 0; color: #66736f; font-size: 25rpx; line-height: 42rpx; }
+.number-card { margin-top: 42rpx; padding: 30rpx; background: #fff; }
+.number-label { color: #66736f; font-size: 23rpx; }
+.number-value { margin-top: 10rpx; color: #176b5b; font-family: monospace; font-size: 36rpx; font-weight: 700; letter-spacing: 1rpx; }
+.copy-hint { margin-top: 10rpx; color: #929d99; font-size: 21rpx; }
+.process-note { margin: 28rpx 0 40rpx; padding: 28rpx; background: #fff; border: 2rpx solid #e3e9e6; border-radius: 16rpx; text-align: left; }
+.process-title { margin-bottom: 22rpx; font-size: 29rpx; font-weight: 700; }
+.process-item { display: flex; align-items: center; min-height: 56rpx; color: #35413e; font-size: 24rpx; }
+.step { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 34rpx; height: 34rpx; margin-right: 16rpx; background: #e8f3f0; color: #176b5b; border-radius: 50%; font-size: 20rpx; font-weight: 700; }
+.back-button { margin-top: 18rpx; }

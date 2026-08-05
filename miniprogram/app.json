@@ -1,0 +1,32 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/public/public",
+    "pages/issues/issues",
+    "pages/submit/submit",
+    "pages/issue-detail/issue-detail",
+    "pages/public-detail/public-detail",
+    "pages/success/success"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "程园小二",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#f5f7f6",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#66736f",
+    "selectedColor": "#176b5b",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/public/public", "text": "公开反馈" },
+      { "pagePath": "pages/issues/issues", "text": "我的诉求" }
+    ]
+  },
+  "style": "v2",
+  "componentFramework": "glass-easel",
+  "lazyCodeLoading": "requiredComponents"
+}

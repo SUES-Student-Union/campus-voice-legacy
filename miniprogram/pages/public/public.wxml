@@ -1,0 +1,46 @@
+<view class="public-page">
+  <view class="public-head">
+    <view class="page-title">公开反馈</view>
+    <view class="page-copy">经审核脱敏的典型诉求与办理结果</view>
+    <view class="privacy-banner"><text class="privacy-mark">隐</text><text>不展示姓名、学号、手机号、精确宿舍号和原始图片</text></view>
+  </view>
+
+  <view class="filter-panel">
+    <view class="search-box">
+      <view class="search-mark"></view>
+      <input placeholder="搜索问题、类别或部门" value="{{keyword}}" bindinput="onKeywordInput" />
+      <text wx:if="{{keyword}}" class="clear-search" bindtap="clearKeyword">×</text>
+    </view>
+    <scroll-view class="chip-scroll" scroll-x show-scrollbar="false">
+      <view class="chip-row">
+        <view wx:for="{{categories}}" wx:key="*this" class="filter-chip {{activeCategory === item ? 'active' : ''}}" data-category="{{item}}" bindtap="selectCategory">{{item}}</view>
+      </view>
+    </scroll-view>
+    <view class="status-row">
+      <view wx:for="{{statuses}}" wx:key="key" class="status-filter {{activeStatus === item.key ? 'active' : ''}}" data-status="{{item.key}}" bindtap="selectStatus">{{item.label}}</view>
+    </view>
+  </view>
+
+  <view class="result-summary">找到 {{filteredCases.length}} 条公开反馈</view>
+  <view class="case-list">
+    <view wx:for="{{filteredCases}}" wx:key="id" class="case-card card" data-id="{{item.id}}" bindtap="openCase">
+      <view class="case-top">
+        <view class="case-category">{{item.category}}</view>
+        <text class="status-tag status-{{item.statusKey}}">{{item.status}}</text>
+      </view>
+      <view class="case-title">{{item.title}}</view>
+      <view class="case-summary">{{item.summary}}</view>
+      <view class="case-meta"><text>{{item.campus}} · {{item.location}}</text><text>{{item.submittedAt}}</text></view>
+      <view class="reply-preview">
+        <view class="reply-label">办理回复</view>
+        <view class="reply-text">{{item.reply}}</view>
+      </view>
+      <view class="case-footer"><text>{{item.department}}</text><text class="detail-link">查看完整办理过程 ›</text></view>
+    </view>
+  </view>
+
+  <view wx:if="{{filteredCases.length === 0}}" class="empty-state">
+    <view class="empty-title">未找到匹配的公开反馈</view>
+    <view class="empty-copy">请尝试更换关键词、分类或办理状态。</view>
+  </view>
+</view>

@@ -1,0 +1,40 @@
+<view wx:if="{{publicCase}}" class="public-detail page-shell">
+  <view class="desensitized-banner"><text class="privacy-icon">隐</text><view><view class="privacy-title">本页面内容已经脱敏</view><view class="privacy-copy">地点已模糊化，不展示个人信息与原始附件</view></view></view>
+
+  <view class="detail-head card">
+    <view class="head-top"><text class="category-label">{{publicCase.category}}</text><text class="status-tag status-{{publicCase.statusKey}}">{{publicCase.status}}</text></view>
+    <view class="detail-title">{{publicCase.title}}</view>
+    <view class="detail-summary">{{publicCase.summary}}</view>
+    <view class="meta-grid">
+      <view><text class="meta-label">校区地点</text><text>{{publicCase.campus}} · {{publicCase.location}}</text></view>
+      <view><text class="meta-label">提交时间</text><text>{{publicCase.submittedAt}}</text></view>
+      <view><text class="meta-label">办理部门</text><text>{{publicCase.department}}</text></view>
+      <view wx:if="{{publicCase.completedAt}}"><text class="meta-label">办结时间</text><text>{{publicCase.completedAt}}</text></view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-heading"><text class="section-title">办理回复</text></view>
+    <view class="public-reply card">
+      <view class="reply-org">{{publicCase.department}}</view>
+      <view class="reply-content">{{publicCase.reply}}</view>
+      <view class="reply-audit">由权益工作小组审核并脱敏公开</view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-heading"><text class="section-title">办理过程</text></view>
+    <view class="timeline-card card">
+      <view wx:for="{{publicCase.progress}}" wx:key="time" class="timeline-item">
+        <view class="timeline-axis"><view class="timeline-dot {{item.current ? 'current' : ''}}"></view><view wx:if="{{index < publicCase.progress.length - 1}}" class="timeline-line"></view></view>
+        <view class="timeline-body">
+          <view class="timeline-head"><text>{{item.status}}</text><text class="timeline-time">{{item.time}}</text></view>
+          <view class="timeline-operator">{{item.operator}}</view>
+          <view class="timeline-desc">{{item.description}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="public-footer">公开反馈旨在推动同类问题解决，不代表展示原始投诉内容</view>
+</view>

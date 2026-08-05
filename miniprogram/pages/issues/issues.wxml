@@ -1,0 +1,41 @@
+<view class="issues-page">
+  <view class="page-head">
+    <view>
+      <view class="page-title">我的诉求</view>
+      <view class="page-copy">共 {{issues.length}} 条记录，完整进度仅你可见</view>
+    </view>
+    <button class="new-button" bindtap="goSubmit">＋ 新建</button>
+  </view>
+
+  <scroll-view class="tab-scroll" scroll-x enhanced show-scrollbar="false">
+    <view class="tab-row">
+      <view wx:for="{{tabs}}" wx:key="key" class="tab-item {{activeTab === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="selectTab">{{item.label}}</view>
+    </view>
+  </scroll-view>
+
+  <view class="issue-list">
+    <view wx:for="{{filteredIssues}}" wx:key="id" class="issue-card card" data-id="{{item.id}}" bindtap="openIssue">
+      <view class="issue-top">
+        <text class="status-tag status-{{item.statusKey}}">{{item.status}}</text>
+        <text class="issue-id">{{item.id}}</text>
+      </view>
+      <view class="issue-title">{{item.title}}</view>
+      <view class="issue-meta">
+        <text>{{item.category}}</text><text class="dot">·</text><text>{{item.campus}}</text><text class="dot">·</text><text>{{item.department}}</text>
+      </view>
+      <view class="progress-box">
+        <view class="progress-label">最新进展</view>
+        <view class="progress-text">{{item.latestProgress}}</view>
+      </view>
+      <view class="issue-footer">
+        <text>更新于 {{item.updatedAt}}</text><text class="view-link">查看详情 ›</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{filteredIssues.length === 0}}" class="empty-state">
+    <view class="empty-title">当前分类暂无诉求</view>
+    <view class="empty-copy">切换其他状态，或提交一条新的校园权益诉求。</view>
+    <button class="primary-button empty-button" bindtap="goSubmit">我要反馈</button>
+  </view>
+</view>

@@ -1,0 +1,22 @@
+node_modules/
+.DS_Store
+*.log
+
+# 微信开发者工具
+project.private.config.json
+miniprogram_npm/
+
+# 编辑器
+.vscode/
+.idea/
+
+# AI 工具本地计划文档
+.claude/
+
+# 编译产物
+dist/
+build/
+
+# Rust
+target/
+backend/target/

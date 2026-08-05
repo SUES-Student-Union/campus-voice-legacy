@@ -1,0 +1,74 @@
+<view wx:if="{{issue}}" class="detail-page page-shell">
+  <view class="status-card status-surface-{{issue.statusKey}}">
+    <view class="status-card-top">
+      <text class="status-tag status-{{issue.statusKey}}">{{issue.status}}</text>
+      <text class="issue-id" bindtap="copyId">{{issue.id}} · 复制</text>
+    </view>
+    <view class="detail-title">{{issue.title}}</view>
+    <view class="status-copy">{{issue.latestProgress}}</view>
+    <view class="status-meta">负责部门：{{issue.department}}</view>
+  </view>
+
+  <view wx:if="{{issue.statusKey === 'supplement'}}" class="supplement-banner">
+    <view>
+      <view class="supplement-title">需要你补充信息</view>
+      <view class="supplement-copy">请根据最新进展补充具体时间、地点或图片材料。</view>
+    </view>
+    <button bindtap="addMaterial">去补充</button>
+  </view>
+
+  <view wx:if="{{issue.reply}}" class="section">
+    <view class="section-heading"><text class="section-title">正式回复</text></view>
+    <view class="reply-card card">
+      <view class="reply-department">{{issue.department}}</view>
+      <view class="reply-content">{{issue.reply}}</view>
+      <view class="reply-note">回复经权益工作小组审核后反馈</view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-heading"><text class="section-title">办理时间线</text></view>
+    <view class="timeline-card card">
+      <view wx:for="{{issue.progress}}" wx:key="time" class="timeline-item">
+        <view class="timeline-axis">
+          <view class="timeline-dot {{item.current ? 'current' : ''}}"></view>
+          <view wx:if="{{index < issue.progress.length - 1}}" class="timeline-line"></view>
+        </view>
+        <view class="timeline-body">
+          <view class="timeline-head"><text class="timeline-status">{{item.status}}</text><text class="timeline-time">{{item.time}}</text></view>
+          <view class="timeline-operator">{{item.operator}}</view>
+          <view class="timeline-desc">{{item.description}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-heading"><text class="section-title">诉求信息</text></view>
+    <view class="info-card card">
+      <view class="info-row"><text>诉求类型</text><text>{{issue.type}}</text></view>
+      <view class="info-row"><text>所属类别</text><text>{{issue.category}}</text></view>
+      <view wx:if="{{issue.requestedDepartment}}" class="info-row"><text>期望部门</text><text>{{issue.requestedDepartment}}</text></view>
+      <view class="info-row"><text>校区地点</text><text>{{issue.campus}} · {{issue.location}}</text></view>
+      <view class="info-row"><text>提交时间</text><text>{{issue.createdAt}}</text></view>
+      <view class="info-row"><text>公开意愿</text><text>{{issue.isPublic ? '同意脱敏公开' : '不公开'}}</text></view>
+      <view class="description-block"><view>详细描述</view><text>{{issue.description}}</text></view>
+      <view wx:if="{{issue.images.length}}" class="detail-images">
+        <image wx:for="{{issue.images}}" wx:key="*this" src="{{item}}" mode="aspectFill" data-src="{{item}}" bindtap="previewImage"></image>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{issue.statusKey === 'completed'}}" class="section rating-section">
+    <view class="section-heading"><text class="section-title">办理评价</text></view>
+    <view class="rating-card card">
+      <view class="rating-copy">本次办理结果是否解决了你的问题？</view>
+      <view class="rating-options">
+        <view wx:for="{{ratings}}" wx:key="*this" class="rating-option {{issue.rating === item ? 'selected' : ''}}" data-rating="{{item}}" bindtap="selectRating">{{item}}</view>
+      </view>
+      <view wx:if="{{issue.rating}}" class="rating-thanks">已评价：{{issue.rating}}，感谢你的反馈。</view>
+    </view>
+  </view>
+
+  <view class="privacy-footer">完整诉求仅本人和经授权的办理人员可见</view>
+</view>

@@ -1,0 +1,17 @@
+{
+  "name": "campus-voice-demo",
+  "version": "1.0.0",
+  "description": "CampusVoice（程园小二）微信小程序与管理端交互 Demo",
+  "scripts": {
+    "typecheck": "node node_modules/typescript/lib/tsc.js --noEmit",
+    "check:admin": "node --check admin-web/app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "miniprogram-api-typings": "^2.8.3-1",
+    "typescript": "^7.0.2"
+  }
+}

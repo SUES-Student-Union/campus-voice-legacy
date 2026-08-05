@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#176B5B">
+  <meta name="description" content="程园小二校园权益诉求管理端演示">
+  <title>程园小二 · 权益工作台</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="主导航">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">程</span>
+        <span class="brand-copy"><strong>程园小二</strong><small>校园权益工作台</small></span>
+      </div>
+      <nav class="main-nav" id="mainNav">
+        <button class="nav-item active" type="button" data-view="dashboard" aria-current="page">
+          <span class="nav-icon" aria-hidden="true"><svg class="icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5M5 10v10h5v-6h4v6h5V10"/></svg></span><span>数据看板</span>
+        </button>
+        <button class="nav-item" type="button" data-view="intake">
+          <span class="nav-icon" aria-hidden="true"><svg class="icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h5l2 3h4l2-3h5"/></svg></span><span>诉求受理</span><span class="nav-badge" id="pendingBadge">0</span>
+        </button>
+        <button class="nav-item" type="button" data-view="workflow">
+          <span class="nav-icon" aria-hidden="true"><svg class="icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2M16 7h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M8 12h8M8 15h8"/></svg></span><span>办理流转</span>
+        </button>
+        <button class="nav-item" type="button" data-view="review">
+          <span class="nav-icon" aria-hidden="true"><svg class="icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="m9 12 2 2 4-4"/></svg></span><span>公开审核</span><span class="nav-badge muted" id="reviewBadge">0</span>
+        </button>
+        <button class="nav-item" type="button" data-view="logs">
+          <span class="nav-icon" aria-hidden="true"><svg class="icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg></span><span>操作日志</span>
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="service-status"><span class="status-dot"></span><span>演示数据服务正常</span></div>
+        <div class="sidebar-meta">CampusVoice Demo v1.0</div>
+      </div>
+    </aside>
+
+    <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+
+    <section class="workspace">
+      <header class="topbar">
+        <button class="icon-button menu-button" id="menuButton" type="button" aria-label="打开导航" aria-controls="sidebar" aria-expanded="false"><svg class="icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+        <div class="topbar-title">
+          <p>上海工程技术大学 · 校学生会权益生活部</p>
+          <h1 id="viewTitle">数据看板</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-button notification-button" id="notificationButton" type="button" aria-label="查看通知">
+            <span aria-hidden="true"><svg class="icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 19a2 2 0 0 0 4 0"/></svg></span><span class="notification-dot"></span>
+          </button>
+          <div class="user-menu">
+            <span class="avatar" aria-hidden="true">林</span>
+            <span class="user-copy"><strong>林知夏</strong><small>权益工作小组</small></span>
+            <span aria-hidden="true"><svg class="icon" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+          </div>
+        </div>
+      </header>
+
+      <main class="main-content" id="mainContent" tabindex="-1">
+        <div class="loading-state">正在载入工作台...</div>
+      </main>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <section class="modal" id="statusModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <header class="modal-header">
+        <div><p class="eyebrow">办理流转</p><h2 id="modalTitle">更新诉求状态</h2></div>
+        <button class="icon-button" id="closeModalButton" type="button" aria-label="关闭">×</button>
+      </header>
+      <form id="statusForm" novalidate>
+        <div class="modal-body">
+          <div class="selected-issue-summary" id="modalIssueSummary"></div>
+          <label class="form-field">
+            <span>更新为 <b aria-hidden="true">*</b></span>
+            <select id="nextStatus" required></select>
+          </label>
+          <label class="form-field">
+            <span>处理说明 <b aria-hidden="true">*</b></span>
+            <textarea id="statusNote" rows="5" maxlength="300" required placeholder="请说明本次处理结果、下一步安排或需协同事项"></textarea>
+            <small><span id="noteCount">0</span>/300 字，本说明将同步至完整办理时间线</small>
+            <span class="field-error" id="statusNoteError" role="alert"></span>
+          </label>
+          <label class="checkbox-row"><input type="checkbox" id="notifyStudent" checked><span>同步通知学生当前进度</span></label>
+        </div>
+        <footer class="modal-footer">
+          <button class="button secondary" id="cancelModalButton" type="button">取消</button>
+          <button class="button primary" type="submit">确认更新</button>
+        </footer>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="batchModalBackdrop" hidden>
+    <section class="modal" id="batchModal" role="dialog" aria-modal="true" aria-labelledby="batchModalTitle">
+      <header class="modal-header">
+        <div><p class="eyebrow">诉求受理</p><h2 id="batchModalTitle">批量指派</h2></div>
+        <button class="icon-button" id="closeBatchModalButton" type="button" aria-label="关闭">×</button>
+      </header>
+      <form id="batchForm" novalidate>
+        <div class="modal-body">
+          <div class="selected-issue-summary" id="batchIssueSummary"></div>
+          <label class="form-field">
+            <span>负责部门 <b aria-hidden="true">*</b></span>
+            <select id="batchDepartment" required></select>
+          </label>
+          <label class="form-field">
+            <span>负责人 <b aria-hidden="true">*</b></span>
+            <select id="batchAssignee" required></select>
+          </label>
+        </div>
+        <footer class="modal-footer">
+          <button class="button secondary" id="cancelBatchModalButton" type="button">取消</button>
+          <button class="button primary" type="submit">确认指派</button>
+        </footer>
+      </form>
+    </section>
+  </div>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+  <script src="app.js"></script>
+</body>
+</html>

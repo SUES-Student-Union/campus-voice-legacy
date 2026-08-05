@@ -1,0 +1,98 @@
+<view class="page-shell submit-page safe-bottom">
+    <view class="intro-block">
+      <view class="intro-title">告诉我们遇到的问题</view>
+      <view class="intro-copy">信息越完整，越有助于快速受理和流转。标有 * 的项目为必填。</view>
+    </view>
+
+    <view class="form-section card">
+      <view class="form-section-title">诉求信息</view>
+      <view class="field">
+        <view class="field-label"><text class="required">*</text>诉求类型</view>
+        <picker range="{{types}}" value="{{typeIndex}}" bindchange="onTypeChange">
+          <view class="select-control {{typeIndex < 0 ? 'placeholder' : ''}}">
+            <text>{{typeIndex < 0 ? '请选择诉求类型' : types[typeIndex]}}</text><text class="chevron">›</text>
+          </view>
+        </picker>
+      </view>
+      <view class="field">
+        <view class="field-label"><text class="required">*</text>所属类别</view>
+        <picker range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+          <view class="select-control {{categoryIndex < 0 ? 'placeholder' : ''}}">
+            <text>{{categoryIndex < 0 ? '请选择所属类别' : categories[categoryIndex]}}</text><text class="chevron">›</text>
+          </view>
+        </picker>
+      </view>
+      <view class="field">
+        <view class="field-label">相关部门 <text class="optional">选填</text></view>
+        <picker range="{{departments}}" value="{{departmentIndex}}" bindchange="onDepartmentChange">
+          <view class="select-control">
+            <text>{{departments[departmentIndex]}}</text><text class="chevron">›</text>
+          </view>
+        </picker>
+        <view class="routing-hint">不确定时无需选择，最终流转部门由权益工作小组确认。</view>
+      </view>
+      <view class="field">
+        <view class="field-label"><text class="required">*</text>标题</view>
+        <input class="text-control" maxlength="40" placeholder="请概括描述问题" value="{{title}}" bindinput="onTitleInput" />
+        <view class="field-hint">{{title.length}} / 40</view>
+      </view>
+      <view class="field no-margin">
+        <view class="field-label"><text class="required">*</text>详细描述</view>
+        <textarea class="textarea-control" maxlength="500" auto-height placeholder="请说明发生时间、具体情况和希望如何处理（至少 10 个字）" value="{{description}}" bindinput="onDescriptionInput"></textarea>
+        <view class="field-hint">{{description.length}} / 500</view>
+      </view>
+    </view>
+
+    <view class="form-section card">
+      <view class="form-section-title">地点与附件</view>
+      <view class="field">
+        <view class="field-label"><text class="required">*</text>校区</view>
+        <picker range="{{campuses}}" value="{{campusIndex}}" bindchange="onCampusChange">
+          <view class="select-control {{campusIndex < 0 ? 'placeholder' : ''}}">
+            <text>{{campusIndex < 0 ? '请选择校区' : campuses[campusIndex]}}</text><text class="chevron">›</text>
+          </view>
+        </picker>
+      </view>
+      <view class="field">
+        <view class="field-label"><text class="required">*</text>具体地点</view>
+        <input class="text-control" maxlength="60" placeholder="例如：教学楼 A 楼公共区域" value="{{location}}" bindinput="onLocationInput" />
+      </view>
+      <view class="field no-margin">
+        <view class="field-label">图片材料 <text class="optional">选填</text></view>
+        <view class="upload-grid">
+          <view wx:for="{{images}}" wx:key="*this" class="upload-item">
+            <image src="{{item}}" mode="aspectFill" data-src="{{item}}" bindtap="previewImage"></image>
+            <view class="remove-image" data-index="{{index}}" catchtap="removeImage" aria-label="删除图片">×</view>
+          </view>
+          <view wx:if="{{images.length < 3}}" class="upload-button" bindtap="chooseImage" role="button">
+            <text class="upload-plus">＋</text><text>添加图片</text>
+          </view>
+        </view>
+        <view class="upload-hint">仅支持图片，单张不超过 5MB，最多 3 张</view>
+      </view>
+    </view>
+
+    <view class="form-section card">
+      <view class="form-section-title">联系与公开</view>
+      <view class="field">
+        <view class="field-label">手机号 <text class="optional">选填</text></view>
+        <input class="text-control" type="number" maxlength="11" placeholder="需要进一步沟通时填写" value="{{contact}}" bindinput="onContactInput" />
+      </view>
+      <view class="setting-row">
+        <view>
+          <view class="setting-title">愿意脱敏公开</view>
+          <view class="setting-desc">仅展示审核后的分类、模糊地点和办理结果</view>
+        </view>
+        <switch color="#176b5b" checked="{{isPublic}}" bindchange="onPublicChange" />
+      </view>
+    </view>
+
+    <view class="agreement-row" bindtap="toggleAgreement" role="checkbox" aria-checked="{{agreed}}">
+      <view class="checkbox {{agreed ? 'checked' : ''}}">{{agreed ? '✓' : ''}}</view>
+      <view class="agreement-text">我已阅读并同意<text class="agreement-link">《隐私与诉求处理说明》</text>，确认所填信息真实有效。</view>
+    </view>
+
+    <view class="submit-note">Demo 提示：图片与诉求仅保存在当前设备，不会真实上传或发送通知。</view>
+    <button class="primary-button submit-button" loading="{{isSubmitting}}" disabled="{{isSubmitting}}" bindtap="submitIssue">提交诉求</button>
+  </view>
+
