@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: campus_voice
+      POSTGRES_PASSWORD: campus_voice
+      POSTGRES_DB: campus_voice
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campus_voice"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://campus_voice:campus_voice@postgres:5432/campus_voice
+      JWT_SECRET: ${JWT_SECRET:?请设置 JWT_SECRET 环境变量}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?请设置 ADMIN_PASSWORD}
+    ports:
+      - "8080:8080"
+    volumes:
+      - uploads:/data/uploads
+
+volumes:
+  pgdata:
+  uploads:

@@ -1,6 +1,7 @@
 node_modules/
 .DS_Store
 *.log
+.env
 
 # 微信开发者工具
 project.private.config.json
@@ -20,3 +21,4 @@ build/
 # Rust
 target/
 backend/target/
+backend/uploads/
