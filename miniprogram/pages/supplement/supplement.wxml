@@ -1,0 +1,16 @@
+<view class="supplement-page page-shell">
+  <view class="intro-block">
+    <view class="intro-title">补充材料</view>
+    <view class="intro-copy">诉求编号：{{issueNo}}。请补充权益工作小组要求的信息，便于继续处理。</view>
+  </view>
+
+  <view class="form-section card">
+    <view class="field no-margin">
+      <view class="field-label"><text class="required">*</text>补充内容</view>
+      <textarea class="textarea-control" maxlength="500" auto-height placeholder="请补充具体时间、地点、经过或相关说明" value="{{content}}" bindinput="onContentInput"></textarea>
+      <view class="field-hint">{{content.length}} / 500</view>
+    </view>
+  </view>
+
+  <button class="primary-button submit-button" loading="{{isSubmitting}}" disabled="{{isSubmitting}}" bindtap="submit">提交补充</button>
+</view>

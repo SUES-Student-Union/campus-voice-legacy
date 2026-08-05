@@ -6,7 +6,10 @@ use axum::Json;
 use serde_json::{json, Value};
 
 pub async fn dashboard(State(state): State<AppState>, user: AuthUser) -> AppResult<Json<Value>> {
-    user.require_role(&[crate::auth::ROLE_WORKER, crate::auth::ROLE_ADMIN])?;
+    user.check(
+        crate::permissions::DASHBOARD_VIEW,
+        &crate::permissions::Ctx::none(),
+    )?;
 
     let month_total: i64 = sqlx::query_scalar(
         "SELECT count(*) FROM issues WHERE created_at >= date_trunc('month', now())",
@@ -36,18 +39,20 @@ pub async fn dashboard(State(state): State<AppState>, user: AuthUser) -> AppResu
     .await?;
 
     let avg_response_hours: Option<f64> = sqlx::query_scalar(
-        "SELECT AVG(EXTRACT(EPOCH FROM (accepted_at - created_at)) / 3600.0) FROM issues WHERE accepted_at IS NOT NULL",
+        "SELECT AVG(EXTRACT(EPOCH FROM (accepted_at - created_at)) / 3600.0)::float8
+         FROM issues WHERE accepted_at IS NOT NULL",
     )
     .fetch_one(&state.db)
     .await?;
     let avg_completion_hours: Option<f64> = sqlx::query_scalar(
-        "SELECT AVG(EXTRACT(EPOCH FROM (completed_at - created_at)) / 3600.0) FROM issues WHERE completed_at IS NOT NULL",
+        "SELECT AVG(EXTRACT(EPOCH FROM (completed_at - created_at)) / 3600.0)::float8
+         FROM issues WHERE completed_at IS NOT NULL",
     )
     .fetch_one(&state.db)
     .await?;
 
     let satisfaction_avg: Option<f64> = sqlx::query_scalar(
-        "SELECT AVG(CASE rating WHEN '满意' THEN 5.0 WHEN '一般' THEN 3.0 WHEN '不满意' THEN 1.0 END)
+        "SELECT AVG(CASE rating WHEN '满意' THEN 5.0 WHEN '一般' THEN 3.0 WHEN '不满意' THEN 1.0 END)::float8
          FROM issues WHERE rating IS NOT NULL",
     )
     .fetch_one(&state.db)

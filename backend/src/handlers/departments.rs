@@ -31,7 +31,10 @@ pub async fn create_department(
     user: AuthUser,
     Json(req): Json<CreateDepartmentReq>,
 ) -> AppResult<Json<Department>> {
-    user.require_role(&[crate::auth::ROLE_ADMIN])?;
+    user.check(
+        crate::permissions::DEPARTMENT_MANAGE,
+        &crate::permissions::Ctx::none(),
+    )?;
     let name = req.name.trim();
     let code = req.code.trim();
     if name.is_empty() || code.is_empty() {

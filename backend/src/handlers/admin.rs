@@ -4,7 +4,8 @@ use crate::error::{AppError, AppResult};
 use crate::guards::AuthUser;
 use crate::handlers::{build_issue_detail, get_issue, push_arg};
 use crate::models::{
-    AcceptReq, AssignReq, AuditLog, AuditLogOut, Issue, IssueDetail, MergeReq, NoteReq, User,
+    AcceptReq, AssignReq, AuditLog, AuditLogOut, IssueDetail, IssueListItem, IssueListRow,
+    MergeReq, NoteReq, User,
 };
 use crate::state::AppState;
 use axum::extract::{Path, Query, State};
@@ -28,7 +29,10 @@ pub async fn list_issues(
     user: AuthUser,
     Query(q): Query<ListQuery>,
 ) -> AppResult<Json<Vec<crate::models::IssueListItem>>> {
-    user.require_role(&[crate::auth::ROLE_WORKER, crate::auth::ROLE_ADMIN])?;
+    user.check(
+        crate::permissions::ISSUE_VIEW_ALL,
+        &crate::permissions::Ctx::none(),
+    )?;
 
     let mut conditions: Vec<String> = Vec::new();
     let mut args = PgArguments::default();
@@ -36,7 +40,7 @@ pub async fn list_issues(
 
     if let Some(ref v) = q.status {
         if status::ALL_STATUSES.contains(&v.as_str()) {
-            conditions.push(format!("status = ${idx}"));
+            conditions.push(format!("i.status = ${idx}"));
             push_arg(&mut args, v.clone())?;
             idx += 1;
         } else {
@@ -44,7 +48,7 @@ pub async fn list_issues(
         }
     }
     if let Some(ref v) = q.category {
-        conditions.push(format!("category = ${idx}"));
+        conditions.push(format!("i.category = ${idx}"));
         push_arg(&mut args, v.clone())?;
         idx += 1;
     }
@@ -52,19 +56,19 @@ pub async fn list_issues(
         if !["高", "中", "低"].contains(&v.as_str()) {
             return Err(AppError::BadRequest("优先级无效".into()));
         }
-        conditions.push(format!("priority = ${idx}"));
+        conditions.push(format!("i.priority = ${idx}"));
         push_arg(&mut args, v)?;
         idx += 1;
     }
     if let Some(v) = q.department_id {
-        conditions.push(format!("department_id = ${idx}"));
+        conditions.push(format!("i.department_id = ${idx}"));
         push_arg(&mut args, v)?;
         idx += 1;
     }
     if let Some(ref v) = q.keyword {
         if !v.trim().is_empty() {
             conditions.push(format!(
-                "(title ILIKE ${idx} OR issue_no ILIKE ${idx} OR location ILIKE ${idx})"
+                "(i.title ILIKE ${idx} OR i.issue_no ILIKE ${idx} OR i.location ILIKE ${idx})"
             ));
             push_arg(&mut args, format!("%{}%", v.trim()))?;
             idx += 1;
@@ -77,33 +81,30 @@ pub async fn list_issues(
     } else {
         format!(" WHERE {}", conditions.join(" AND "))
     };
-    let sql = format!("SELECT * FROM issues{where_clause} ORDER BY created_at DESC LIMIT 200");
-    let rows = sqlx::query_as_with::<_, Issue, PgArguments>(&sql, args)
+    let sql = format!(
+        "SELECT i.*, d.name AS department_name
+         FROM issues i LEFT JOIN departments d ON d.id = i.department_id
+         {where_clause} ORDER BY i.created_at DESC LIMIT 200"
+    );
+    let rows = sqlx::query_as_with::<_, IssueListRow, PgArguments>(&sql, args)
         .fetch_all(&state.db)
         .await?;
-    Ok(Json(
-        rows.iter()
-            .map(|i| crate::models::IssueListItem {
-                id: i.id,
-                issue_no: i.issue_no.clone(),
-                title: i.title.clone(),
-                category: i.category.clone(),
-                status: i.status.clone(),
-                latest_progress: i.latest_progress.clone(),
-                updated_at: i.updated_at,
-            })
-            .collect(),
-    ))
+    Ok(Json(rows.into_iter().map(IssueListItem::from).collect()))
 }
 
 pub async fn admin_issue_detail(
     State(state): State<AppState>,
     user: AuthUser,
     Path(id): Path<Uuid>,
-) -> AppResult<Json<IssueDetail>> {
-    user.require_role(&[crate::auth::ROLE_WORKER, crate::auth::ROLE_ADMIN])?;
+) -> AppResult<Json<crate::models::AdminIssueDetail>> {
+    user.check(
+        crate::permissions::ISSUE_VIEW_ALL,
+        &crate::permissions::Ctx::none(),
+    )?;
     let issue = get_issue(&state.db, id).await?;
-    Ok(Json(build_issue_detail(&state.db, &issue).await?))
+    Ok(Json(
+        crate::handlers::build_admin_issue_detail(&state.db, &issue).await?,
+    ))
 }
 
 pub async fn accept_issue(
@@ -112,7 +113,10 @@ pub async fn accept_issue(
     Path(id): Path<Uuid>,
     Json(req): Json<AcceptReq>,
 ) -> AppResult<Json<IssueDetail>> {
-    user.require_role(&[crate::auth::ROLE_WORKER, crate::auth::ROLE_ADMIN])?;
+    user.check(
+        crate::permissions::ISSUE_ACCEPT,
+        &crate::permissions::Ctx::none(),
+    )?;
     if !["高", "中", "低"].contains(&req.priority.as_str()) {
         return Err(AppError::BadRequest("优先级无效".into()));
     }
@@ -144,7 +148,7 @@ pub async fn accept_issue(
     .await?;
     notify::notify_user(
         &mut tx,
-        issue.student_id,
+        issue.submitter_id,
         "诉求已受理",
         &format!("您提交的诉求 {} 已受理，请留意后续进展。", issue.issue_no),
         "issue",
@@ -175,7 +179,10 @@ pub async fn assign_issue(
     Path(id): Path<Uuid>,
     Json(req): Json<AssignReq>,
 ) -> AppResult<Json<IssueDetail>> {
-    user.require_role(&[crate::auth::ROLE_WORKER, crate::auth::ROLE_ADMIN])?;
+    user.check(
+        crate::permissions::ISSUE_ASSIGN,
+        &crate::permissions::Ctx::none(),
+    )?;
     let issue = get_issue(&state.db, id).await?;
 
     let dept_name = sqlx::query_scalar::<_, String>("SELECT name FROM departments WHERE id = $1")
@@ -262,7 +269,10 @@ pub async fn request_supplement(
     Path(id): Path<Uuid>,
     Json(req): Json<NoteReq>,
 ) -> AppResult<Json<IssueDetail>> {
-    user.require_role(&[crate::auth::ROLE_WORKER, crate::auth::ROLE_ADMIN])?;
+    user.check(
+        crate::permissions::ISSUE_REQUEST_SUPPLEMENT,
+        &crate::permissions::Ctx::none(),
+    )?;
     let note = req.note.trim();
     if note.is_empty() {
         return Err(AppError::BadRequest("补充说明不能为空".into()));
@@ -289,7 +299,7 @@ pub async fn request_supplement(
     .await?;
     notify::notify_user(
         &mut tx,
-        issue.student_id,
+        issue.submitter_id,
         "需要补充信息",
         &format!("请补充：{note}"),
         "issue",
@@ -320,7 +330,10 @@ pub async fn close_issue(
     Path(id): Path<Uuid>,
     Json(req): Json<NoteReq>,
 ) -> AppResult<Json<IssueDetail>> {
-    user.require_role(&[crate::auth::ROLE_WORKER, crate::auth::ROLE_ADMIN])?;
+    user.check(
+        crate::permissions::ISSUE_CLOSE,
+        &crate::permissions::Ctx::none(),
+    )?;
     let note = req.note.trim();
     if note.is_empty() {
         return Err(AppError::BadRequest("关闭原因不能为空".into()));
@@ -347,7 +360,7 @@ pub async fn close_issue(
     .await?;
     notify::notify_user(
         &mut tx,
-        issue.student_id,
+        issue.submitter_id,
         "诉求已关闭",
         &format!("您提交的诉求 {} 已关闭：{note}", issue.issue_no),
         "issue",
@@ -378,7 +391,10 @@ pub async fn merge_issue(
     Path(id): Path<Uuid>,
     Json(req): Json<MergeReq>,
 ) -> AppResult<Json<IssueDetail>> {
-    user.require_role(&[crate::auth::ROLE_WORKER, crate::auth::ROLE_ADMIN])?;
+    user.check(
+        crate::permissions::ISSUE_MERGE,
+        &crate::permissions::Ctx::none(),
+    )?;
     if req.target_issue_id == id {
         return Err(AppError::BadRequest("不能合并到自身".into()));
     }
@@ -412,7 +428,7 @@ pub async fn merge_issue(
     .await?;
     notify::notify_user(
         &mut tx,
-        issue.student_id,
+        issue.submitter_id,
         "诉求已合并",
         &format!(
             "您的诉求 {} 与 {} 重复，已合并至后者继续跟进。",
@@ -451,7 +467,10 @@ pub async fn list_audit_logs(
     State(state): State<AppState>,
     user: AuthUser,
 ) -> AppResult<Json<Vec<AuditLogOut>>> {
-    user.require_role(&[crate::auth::ROLE_WORKER, crate::auth::ROLE_ADMIN])?;
+    user.check(
+        crate::permissions::AUDIT_VIEW,
+        &crate::permissions::Ctx::none(),
+    )?;
     let rows = sqlx::query_as::<_, AuditRow>(
         "SELECT a.*, u.name AS operator_name
          FROM audit_logs a LEFT JOIN users u ON u.id = a.operator_id

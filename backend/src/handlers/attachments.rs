@@ -16,9 +16,10 @@ pub async fn upload_attachment(
     mut multipart: Multipart,
 ) -> AppResult<Json<Vec<AttachmentOut>>> {
     let issue = get_issue(&state.db, issue_id).await?;
-    if !can_touch_issue(&state, &user, &issue).await? {
-        return Err(AppError::Forbidden("无权为此诉求上传附件".into()));
-    }
+    user.check(
+        crate::permissions::ATTACHMENT_UPLOAD,
+        &crate::permissions::Ctx::for_issue(&issue),
+    )?;
 
     let existing: i64 = sqlx::query_scalar("SELECT count(*) FROM attachments WHERE issue_id = $1")
         .bind(issue_id)
@@ -109,18 +110,22 @@ pub async fn download_attachment(
         .await?
         .ok_or_else(|| AppError::NotFound("附件不存在".into()))?;
 
-    let permitted = if user.is_worker_or_admin() || att.is_public {
+    let allowed = if att.is_public {
         true
     } else {
         match att.issue_id {
             Some(iid) => {
                 let issue = get_issue(&state.db, iid).await?;
-                can_touch_issue(&state, &user, &issue).await?
+                user.check(
+                    crate::permissions::ATTACHMENT_DOWNLOAD,
+                    &crate::permissions::Ctx::for_issue(&issue),
+                )
+                .is_ok()
             }
             None => false,
         }
     };
-    if !permitted {
+    if !allowed {
         return Err(AppError::Forbidden("无权访问该附件".into()));
     }
 
@@ -145,29 +150,6 @@ pub async fn download_attachment(
         HeaderValue::from_static("private, max-age=3600"),
     );
     Ok(resp)
-}
-
-async fn can_touch_issue(
-    state: &AppState,
-    user: &AuthUser,
-    issue: &crate::models::Issue,
-) -> AppResult<bool> {
-    if user.is_worker_or_admin() {
-        return Ok(true);
-    }
-    if user.role() == crate::auth::ROLE_STUDENT {
-        return Ok(issue.student_id == user.id());
-    }
-    if user.role() == crate::auth::ROLE_DEPT_STAFF {
-        let dept_id =
-            sqlx::query_scalar::<_, Option<Uuid>>("SELECT department_id FROM users WHERE id = $1")
-                .bind(user.id())
-                .fetch_optional(&state.db)
-                .await?
-                .flatten();
-        return Ok(dept_id.is_some() && issue.department_id == dept_id);
-    }
-    Ok(false)
 }
 
 fn sanitize_ext(ext: &str) -> String {

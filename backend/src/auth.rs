@@ -19,16 +19,24 @@ pub struct Claims {
     pub sub: String,
     pub role: String,
     pub name: String,
+    pub dept: Option<Uuid>,
     pub iat: usize,
     pub exp: usize,
 }
 
-pub fn sign_token(cfg: &AppConfig, user_id: Uuid, role: &str, name: &str) -> AppResult<String> {
+pub fn sign_token(
+    cfg: &AppConfig,
+    user_id: Uuid,
+    role: &str,
+    name: &str,
+    dept: Option<Uuid>,
+) -> AppResult<String> {
     let now = Utc::now().timestamp() as usize;
     let claims = Claims {
         sub: user_id.to_string(),
         role: role.to_string(),
         name: name.to_string(),
+        dept,
         iat: now,
         exp: now + (cfg.jwt_expires_hours as usize) * 3600,
     };
@@ -78,8 +86,8 @@ pub async fn wechat_openid(
     code: &str,
 ) -> AppResult<String> {
     if !cfg.wechat_enabled() {
-        tracing::info!("未配置微信登录，使用开发降级 openid（dev_{code}）");
-        return Ok(format!("dev_{code}"));
+        tracing::info!("未配置微信登录，使用开发降级 openid（dev_student）");
+        return Ok("dev_student".to_string());
     }
     let appid = cfg.wechat_appid.as_deref().unwrap_or_default();
     let secret = cfg.wechat_secret.as_deref().unwrap_or_default();

@@ -20,6 +20,8 @@ async fn main() -> anyhow::Result<()> {
         .await
         .context("创建上传目录失败")?;
     seed_admin(&pool, &cfg).await?;
+    campus_voice_backend::seed::ensure_demo_accounts(&pool).await?;
+    campus_voice_backend::seed::seed_demo(&pool).await?;
 
     let state = AppState {
         db: pool,

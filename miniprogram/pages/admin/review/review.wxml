@@ -1,0 +1,57 @@
+<view class="review-page">
+  <block wx:if="{{mode === 'list'}}">
+    <view class="page-head">
+      <view class="page-title">公开审核</view>
+      <view class="page-copy">待审核诉求的脱敏公开稿审核</view>
+    </view>
+    <view class="case-list">
+      <view wx:for="{{issues}}" wx:key="id" class="case-card card" data-id="{{item.id}}" bindtap="openEdit">
+        <view class="case-top">
+          <text class="status-tag status-{{item.statusKey}}">{{item.status}}</text>
+          <text class="issue-id">{{item.no}}</text>
+        </view>
+        <view class="case-title">{{item.title}}</view>
+        <view class="case-meta">{{item.category}} · {{item.campus}}</view>
+      </view>
+    </view>
+    <view wx:if="{{issues.length === 0}}" class="empty-state">
+      <view class="empty-title">暂无待审核诉求</view>
+    </view>
+  </block>
+
+  <block wx:if="{{mode === 'edit' && issue}}">
+    <view class="page-head">
+      <view class="page-title">{{issue.no}}</view>
+      <view class="page-copy">{{issue.title}}</view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">原始信息（仅内部可见）</view>
+      <view class="card origin-card">
+        <view class="origin-row"><text>学生</text><text>{{issue.studentName}} · {{issue.contact}}</text></view>
+        <view class="origin-row"><text>地点</text><text>{{issue.campus}} · {{issue.location}}</text></view>
+        <view class="origin-row"><text>描述</text><text>{{issue.description}}</text></view>
+        <view wx:if="{{issue.reply}}" class="origin-row"><text>部门回复</text><text>{{issue.reply}}</text></view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">脱敏公开稿</view>
+      <view class="card draft-card">
+        <input class="draft-input" maxlength="60" placeholder="公开标题" value="{{title}}" bindinput="onTitle" />
+        <input class="draft-input" maxlength="40" placeholder="模糊地点" value="{{location}}" bindinput="onLocation" />
+        <textarea class="draft-textarea" maxlength="300" placeholder="问题摘要" value="{{summary}}" bindinput="onSummary"></textarea>
+        <textarea class="draft-textarea" maxlength="500" placeholder="公开回复" value="{{reply}}" bindinput="onReply"></textarea>
+      </view>
+    </view>
+
+    <view class="review-actions">
+      <button class="action-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="saveDraft">保存草稿</button>
+      <button class="action-btn danger" loading="{{submitting}}" disabled="{{submitting}}" bindtap="reject">打回</button>
+      <button class="action-btn primary" loading="{{submitting}}" disabled="{{submitting}}" bindtap="approve">通过并公开</button>
+    </view>
+    <view class="reject-hint">
+      <textarea class="note-textarea" placeholder="打回原因（打回时必填）" value="{{note}}" bindinput="onNote"></textarea>
+    </view>
+  </block>
+</view>

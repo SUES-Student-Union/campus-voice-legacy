@@ -1,16 +1,17 @@
-import { publicCases } from '../../data/mock'
-import { PublicCase } from '../../types/issue'
+import { get } from '../../utils/api'
+import { ApiPublicCase, PublicCaseItem, toPublicCaseItem } from '../../types/api'
 
 Page({
   data: {
-    publicCase: null as PublicCase | null
+    publicCase: null as PublicCaseItem | null
   },
   onLoad(options: Record<string, string>) {
-    const publicCase = publicCases.find((item) => item.id === options.id)
-    if (!publicCase) {
-      wx.showToast({ title: '未找到公开反馈', icon: 'none' })
-      return
+    if (options.id) {
+      get<ApiPublicCase>(`/public/cases/${options.id}`)
+        .then((data) => this.setData({ publicCase: toPublicCaseItem(data) }))
+        .catch((err) => {
+          wx.showToast({ title: (err as Error).message || '加载失败', icon: 'none' })
+        })
     }
-    this.setData({ publicCase })
   }
 })

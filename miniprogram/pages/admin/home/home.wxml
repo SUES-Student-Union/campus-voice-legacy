@@ -1,0 +1,45 @@
+<view class="admin-home">
+  <view class="home-head">
+    <view>
+      <view class="home-title">管理端工作台</view>
+      <view class="home-sub">{{staffName}} · {{role === 'department_staff' ? '职能部门老师' : (role === 'admin' ? '管理员' : '权益工作小组')}}</view>
+    </view>
+    <view class="logout-btn" bindtap="logout">退出</view>
+  </view>
+
+  <view wx:if="{{isWorker}}" class="stats-card card">
+    <view class="stats-row">
+      <view class="stat"><text class="stat-value">{{stats ? stats.month_total : '—'}}</text><text class="stat-label">本月诉求</text></view>
+      <view class="stat"><text class="stat-value">{{stats ? stats.all_total : '—'}}</text><text class="stat-label">累计诉求</text></view>
+      <view class="stat"><text class="stat-value">{{stats ? Math.round(stats.completion_rate * 100) + '%' : '—'}}</text><text class="stat-label">办结率</text></view>
+    </view>
+    <view wx:if="{{stats && stats.satisfaction_avg}}" class="stat-foot">平均满意度 {{stats.satisfaction_avg}} / 5 · 平均响应 {{stats.avg_response_hours ? Math.round(stats.avg_response_hours) + 'h' : '—'}}</view>
+  </view>
+
+  <view class="menu-list">
+    <view class="menu-item card" bindtap="goIssues">
+      <view class="menu-icon">受</view>
+      <view class="menu-body">
+        <view class="menu-title">{{isDeptStaff ? '本部门诉求' : '诉求受理'}}</view>
+        <view class="menu-desc">{{isDeptStaff ? '查看本部门诉求，更新进展与回复' : '受理、分类、指派与流转'}}</view>
+      </view>
+      <view class="menu-arrow">›</view>
+    </view>
+    <view wx:if="{{isWorker}}" class="menu-item card" bindtap="goReview">
+      <view class="menu-icon">审</view>
+      <view class="menu-body">
+        <view class="menu-title">公开审核</view>
+        <view class="menu-desc">脱敏稿编辑、审核通过与打回</view>
+      </view>
+      <view class="menu-arrow">›</view>
+    </view>
+    <view wx:if="{{isWorker}}" class="menu-item card" bindtap="goLogs">
+      <view class="menu-icon">志</view>
+      <view class="menu-body">
+        <view class="menu-title">操作日志</view>
+        <view class="menu-desc">追踪管理端关键操作</view>
+      </view>
+      <view class="menu-arrow">›</view>
+    </view>
+  </view>
+</view>

@@ -5,8 +5,14 @@
     "pages/issues/issues",
     "pages/submit/submit",
     "pages/issue-detail/issue-detail",
+    "pages/supplement/supplement",
     "pages/public-detail/public-detail",
-    "pages/success/success"
+    "pages/success/success",
+    "pages/admin/home/home",
+    "pages/admin/issues/issues",
+    "pages/admin/issue/issue",
+    "pages/admin/review/review",
+    "pages/admin/logs/logs"
   ],
   "window": {
     "navigationBarTextStyle": "black",
